@@ -13,10 +13,18 @@
 
 typedef short bool;
 #define true 1
-#define false 1
+#define false 0
+#define algoQueueID 1111
+#define processQueueID 99
 
 #define SHKEY 300
 
+
+ typedef struct algoInfo
+{
+    long mtype;
+    int info;
+} algoInfo;
 
 ///==============================
 //don't mess with this variable//
