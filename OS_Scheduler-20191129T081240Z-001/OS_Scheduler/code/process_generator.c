@@ -8,7 +8,7 @@ void sendProcess(struct PCB  pc,int processMsgID);
 
 int main(int argc, char * argv[])
 {
-    signal(SIGINT, clearResources);
+    //signal(SIGINT, clearResources);
     
     // TODO Initialization
     int schedulingAlgo=0;
@@ -86,7 +86,7 @@ int main(int argc, char * argv[])
         
         }
         }
-         sleep(1);
+
      } 
 
         // 7. Clear clock resources

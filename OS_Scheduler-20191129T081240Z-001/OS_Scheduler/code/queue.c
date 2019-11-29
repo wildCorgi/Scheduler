@@ -56,8 +56,7 @@ node* dequeue( queue* q)
         return NULL; 
   
     struct node* temp = q->front; 
-    free(temp);
-    q->front = q->front->next;  
+    q->front = q->front->next; 
     if (q->front == NULL) 
         q->rear = NULL; 
     return temp; 
