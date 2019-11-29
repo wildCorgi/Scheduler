@@ -35,6 +35,7 @@ int getClk()
  * All process call this function at the beginning to establish communication between them and the clock module.
  * Again, remember that the clock is only emulation!
 */
+
 void initClk()
 {
     int shmid = shmget(SHKEY, 4, 0444);
