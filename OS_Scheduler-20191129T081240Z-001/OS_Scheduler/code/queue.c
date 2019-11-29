@@ -1,7 +1,7 @@
-#include "PCB.c"
+#include "headers.h"
 
 typedef struct node {
-PCB * next;
+struct node * next;
 PCB data;
 } node;
 typedef struct queue

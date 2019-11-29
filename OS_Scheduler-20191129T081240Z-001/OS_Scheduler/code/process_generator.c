@@ -1,9 +1,10 @@
-#include "headers.h"
+
+#include "queue.c"
 
 void clearResources(int);
-void readFile(int processMsgID);
+void readFile(queue * pcbs);
 void createMessageQueue(int *msgID,int ID);
-void sendProcess(struct PCB pc,int processMsgID);
+void sendProcess(struct PCB  pc,int processMsgID);
 
 int main(int argc, char * argv[])
 {
@@ -13,12 +14,12 @@ int main(int argc, char * argv[])
     int schedulingAlgo=0;
     int quantum = 0;
     int processMsgID,algoMsgID;
-
+    int pid;
     // 1. Read the input files.
     createMessageQueue(&processMsgID,processQueueID);
-    readFile(processMsgID);
-  
-    
+    createMessageQueue(&algoMsgID,algoQueueID); 
+    queue * pcbs = createQueue();   
+    readFile(pcbs);
     
     
     // 2. Ask the user for the chosen scheduling algorithm and its parameters, if there are any.
@@ -33,25 +34,63 @@ int main(int argc, char * argv[])
         scanf("%d",&quantum);
     }    
     schedulingAlgo += quantum-1;
-
-    createMessageQueue(&algoMsgID,algoQueueID);
-    
-   
+  
     // 3. Initiate and create the scheduler and clock processes.
+    pid = fork();
+
+    if(pid==-1)
+    {
+        perror("Error in fork!!");
+    }
+    else if (pid == 0)
+    {
+        execl("./clk.out","clk.out",NULL);
+    }
+
+ /*    pid = fork();
     
+    if(pid==-1)
+    {
+        perror("Error in fork!!");
+    }
+    else if (pid == 0)
+    {
+       // execl("./scheduler.out","scheduler.out",NULL);
+    }
+  */ 
+
+  
 
     
- 
     // 4. Use this function after creating the clock process to initialize clock
-    //initClk();
-    // To get time use this
-    //int x = getClk();
-    //printf("current time is %d\n", x);
-    // TODO Generation Main Loop
-    // 5. Create a data structure for processes and provide it with its parameters.
-    // 6. Send the information to the scheduler at the appropriate time.
-    // 7. Clear clock resources
-    destroyClk(true);
+
+    initClk();
+    while(1)
+    {      
+        int x = getClk();
+        
+        printf("A7A %d\n",pcbs->front->data.arrivalTime);
+       
+        if(pcbs->front!=NULL)
+        {
+                 printf("%d\n",x);
+        while(pcbs->front->data.arrivalTime == x)
+        {
+          printf("NOT A7A %d\n",x);
+    
+         struct PCB  temp = dequeue(pcbs)->data ;    
+         sendProcess(temp,processMsgID);      
+     
+         if(pcbs->front==NULL)
+         break;
+        
+        }
+        }
+         sleep(1);
+     } 
+
+        // 7. Clear clock resources
+        destroyClk(true);
 }
 
 void clearResources(int signum)
@@ -59,7 +98,7 @@ void clearResources(int signum)
     //TODO Clears all resources in case of interruption
 }
 
-void sendProcess(struct PCB pcb,int processMsgID)
+void sendProcess(struct PCB  pcb,int processMsgID)
 {
     int send_val;
     struct msgPBuff temp;
@@ -73,11 +112,11 @@ void sendProcess(struct PCB pcb,int processMsgID)
 
 void createMessageQueue(int *msgID,int ID)
 {
-(*msgID)= msgget((ID),IPC_CREAT | 0644 );
+(*msgID)= msgget((ID),IPC_CREAT | 0666 );
 }
 
 
-void readFile(int processMsgID)
+void readFile(queue * pcbs)
 {
 
     int info[4];
@@ -95,7 +134,7 @@ void readFile(int processMsgID)
             temp.arrivalTime = info[1];
             temp.runTime = info[2];
             temp.priority = info[3];
-            sendProcess(temp,processMsgID);
+            enqueue(pcbs,temp);
         }
         else
             continue; 

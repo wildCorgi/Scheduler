@@ -3,11 +3,12 @@
 
 int main(int argc, char * argv[])
 {
+    
     initClk();
     
     //TODO implement the scheduler :)
     //upon termination release the clock resources
-    int algoQueue = mssget(algoQueueID, IPC_CREAT | 0644);
+    int algoQueue = msgget(algoQueueID, IPC_CREAT | 0644);
     algoInfo receivedInfo;
     int MSGRCV = msgrcv(algoQueueID, &receivedInfo, sizeof(receivedInfo.info),300, !IPC_NOWAIT);
  
