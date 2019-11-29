@@ -16,7 +16,7 @@ typedef short bool;
 #define false 0
 #define algoQueueID 1111
 #define processQueueID 99
-
+#define processMType 1
 #define SHKEY 300
 
 
@@ -27,7 +27,6 @@ typedef short bool;
 } algoInfo;
 
 
-
 typedef struct PCB {
     int processID;
     int runTime;
@@ -35,11 +34,17 @@ typedef struct PCB {
     int finishTime;
     int priority;
     int turnaroundTime;
-    enum state {
-        READY = 0 ,
-        RUNNING = 1
-    };
+    int state; 
 } PCB;
+
+
+
+struct msgPBuff
+{
+    long  mtype;
+    struct PCB pcb;
+};
+
 
 ///==============================
 //don't mess with this variable//
