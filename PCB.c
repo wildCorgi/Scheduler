@@ -1,4 +1,3 @@
-#include <stdio.h>      //if you don't use scanf/printf change this include
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/file.h>
@@ -19,7 +18,7 @@ typedef struct PCB {
     int priority;
     int turnaroundTime;
     enum state {
-        READY = 0;
-        RUNNING = 1;
-    }
+        READY = 0 ,
+        RUNNING = 1
+    };
 }
