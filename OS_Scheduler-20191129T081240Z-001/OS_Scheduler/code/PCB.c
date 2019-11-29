@@ -11,4 +11,4 @@ typedef struct PCB {
         READY = 0 ,
         RUNNING = 1
     };
-}
+} PCB;
