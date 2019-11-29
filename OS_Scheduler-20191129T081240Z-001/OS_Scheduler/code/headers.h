@@ -26,6 +26,21 @@ typedef short bool;
     int info;
 } algoInfo;
 
+
+
+typedef struct PCB {
+    int processID;
+    int runTime;
+    int arrivalTime;
+    int finishTime;
+    int priority;
+    int turnaroundTime;
+    enum state {
+        READY = 0 ,
+        RUNNING = 1
+    };
+} PCB;
+
 ///==============================
 //don't mess with this variable//
 int * shmaddr;                 //
