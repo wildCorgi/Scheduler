@@ -14,10 +14,11 @@
 typedef short bool;
 #define true 1
 #define false 0
-#define algoQueue 1111
-#define processQueue 99
+#define algoQueueID 1111
+#define processQueueID 99
 
 #define SHKEY 300
+
 
  typedef struct algoInfo
 {
