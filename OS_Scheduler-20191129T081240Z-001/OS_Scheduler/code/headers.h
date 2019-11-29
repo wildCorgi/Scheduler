@@ -19,11 +19,11 @@ typedef short bool;
 
 #define SHKEY 300
 
-struct msgbuff
+ typedef struct algoInfo
 {
     long mtype;
-    char mtext[256];
-};
+    int info;
+} algoInfo;
 
 ///==============================
 //don't mess with this variable//

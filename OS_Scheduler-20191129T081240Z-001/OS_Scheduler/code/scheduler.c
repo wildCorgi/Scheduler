@@ -12,8 +12,10 @@ int main(int argc, char * argv[])
     int MSGRCV = msgrcv(algoQueue, &receivedInfo, sizeof(receivedInfo.mtext), !IPC_NOWAIT);
     int quantum;
     int algo = receivedInfo.info;
-    if(algo == 0){ // implement HPF}
-    else if (algo == 1){ //implement SRTN here}
+    if(algo == 0){ // implement HPF
+    }
+    else if (algo == 1){ //implement SRTN here
+    }
     else{ //implement RR 
         quantum = algo - 1;
     }
