@@ -26,6 +26,21 @@ typedef short bool;
     int info;
 } algoInfo;
 
+
+
+typedef struct PCB {
+    int processID;
+    int runTime;
+    int arrivalTime;
+    int finishTime;
+    int priority;
+    int turnaroundTime;
+    enum state {
+        READY = 0 ,
+        RUNNING = 1
+    };
+} PCB;
+
 ///==============================
 //don't mess with this variable//
 int * shmaddr;                 //
@@ -43,6 +58,7 @@ int getClk()
  * All process call this function at the beginning to establish communication between them and the clock module.
  * Again, remember that the clock is only emulation!
 */
+
 void initClk()
 {
     int shmid = shmget(SHKEY, 4, 0444);
