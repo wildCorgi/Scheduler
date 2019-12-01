@@ -5,16 +5,17 @@ int remainingtime;
 
 int main(int agrc, char * argv[])
 {
-    initClk();
+    //initClk();
     
     //TODO it needs to get the remaining time from somewhere
     //remainingtime = ??;
-    while (remainingtime > 0)
+    /*while (remainingtime > 0)
     {
         // remainingtime = ??;
-    }
+    } 
     
     destroyClk(false);
-    
+    */
+    printf("testing \n");
     return 0;
 }

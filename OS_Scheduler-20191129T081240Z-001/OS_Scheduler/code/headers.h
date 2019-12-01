@@ -15,7 +15,17 @@ typedef short bool;
 #define true 1
 #define false 1
 
+<<<<<<< Updated upstream
 #define SHKEY 300
+=======
+
+
+typedef struct msgPBuff
+{
+    long  mtype;
+    struct PCB pcb;
+} msgPBuff;
+>>>>>>> Stashed changes
 
 
 ///==============================
