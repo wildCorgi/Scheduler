@@ -1,3 +1,5 @@
+#pragma once
+
 #include <stdio.h>      //if you don't use scanf/printf change this include
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -17,6 +19,7 @@ typedef short bool;
 #define algoQueueID 1111
 #define processQueueID 99
 #define processMType 1
+#define algoMType 2
 #define SHKEY 300
 
 

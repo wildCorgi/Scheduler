@@ -1,4 +1,4 @@
-
+#include "headers.h"
 #include "queue.c"
 
 void clearResources(int);
@@ -34,7 +34,10 @@ int main(int argc, char * argv[])
         scanf("%d",&quantum);
     }    
     schedulingAlgo += quantum-1;
-  
+    algoInfo algo;
+    algo.info = schedulingAlgo;
+    algo.mtype = algoMType;
+    int algosend = msgsnd(algoQueueID, &algo, sizeof(algo), !IPC_NOWAIT );
     // 3. Initiate and create the scheduler and clock processes.
     pid = fork();
 
@@ -47,7 +50,7 @@ int main(int argc, char * argv[])
         execl("./clk.out","clk.out",NULL);
     }
 
- /*    pid = fork();
+     pid = fork();
     
     if(pid==-1)
     {
@@ -55,9 +58,9 @@ int main(int argc, char * argv[])
     }
     else if (pid == 0)
     {
-       // execl("./scheduler.out","scheduler.out",NULL);
+        execl("./scheduler.out","scheduler.out",NULL);
     }
-  */ 
+  
 
   
 

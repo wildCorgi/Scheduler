@@ -20,6 +20,7 @@ int main(int argc, char * argv[])
     }
     else{ //implement RR 
         quantum = algo - 1;
+        
     }
     destroyClk(true);
 }
