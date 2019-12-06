@@ -51,6 +51,29 @@ void priorityEnqueue(queue* q, PCB newPCB)
     temp->next=p->next;
     p->next=temp;
 };
+void remainingTimeEnqueue(queue* q, PCB newPCB)
+{
+    node* temp = (node*)malloc(sizeof(node));
+    temp->data=newPCB;
+    temp->next = NULL;
+    //if empty queue
+    if(q->rear==NULL)
+    {
+        q->front = q->rear = temp;
+        return;
+    }
+    //else
+    node* p = (node*)malloc(sizeof(node));
+    //pointer to front
+    p=q->front;
+    //get to the position wherer last item with priority equal to mine
+    while(p->data.runTime>=temp->data.runTime)
+    {
+        p=p->next;
+    }
+    temp->next=p->next;
+    p->next=temp;
+};
 node* dequeue( queue* q) 
 {  
     if (q->front == NULL) 
