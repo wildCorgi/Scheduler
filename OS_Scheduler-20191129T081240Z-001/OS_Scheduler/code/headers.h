@@ -13,9 +13,6 @@
 
 typedef short bool;
 #define true 1
-<<<<<<< Updated upstream
-#define false 1
-=======
 #define false 0
 #define algoQueueID 1111
 #define processQueueID 99
@@ -43,11 +40,7 @@ typedef struct PCB {
     int forkID;
     int remainingTime;
 } PCB;
->>>>>>> Stashed changes
 
-<<<<<<< Updated upstream
-#define SHKEY 300
-=======
 
 
 typedef struct msgPBuff
@@ -55,7 +48,6 @@ typedef struct msgPBuff
     long  mtype;
     struct PCB pcb;
 } msgPBuff;
->>>>>>> Stashed changes
 
 
 ///==============================
