@@ -12,7 +12,7 @@ int main(int argc, char * argv[])
     //signal(SIGINT, clearResources);
     
     int schedulingAlgo=-1;
-    int quantum = -1;
+    int quantum = 0;
     int processMsgID,algoMsgID;
     int pid;
     
@@ -142,6 +142,7 @@ void sendAlgoNumber(int algoMsgID,int schedulingAlgo)
 
     
     algoInfo algo;
+    
     algo.info = schedulingAlgo;
     algo.mtype = algoMType;
     
