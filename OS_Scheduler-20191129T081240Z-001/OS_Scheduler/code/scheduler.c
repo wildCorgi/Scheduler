@@ -1,25 +1,42 @@
 
 #include "queue.c"
 
+
+void createMessageQueue(int *msgID,int ID);
+int  recieveMSG(int ID);
+void doRR(int quantum,int algo);
 int main(int argc, char *argv[])
 {
     
+    int algo =0;
     initClk();
  
     //TODO implement the scheduler :)
     //upon termination release the clock resources
-    int algoQueue = msgget(algoQueueID, IPC_CREAT | 0644);
-    algoInfo receivedInfo;
-    int MSGRCV = msgrcv(algoQueueID, &receivedInfo, sizeof(receivedInfo.info), algoMType, !IPC_NOWAIT);
+
+    int algoQueue;
+    createMessageQueue(&algoQueue,algoQueueID);   
+    
+    algo = recieveMSG(algoQueue);
+    printf("The algo number is: %d",algo);
 
     int quantum;
-    int algo = receivedInfo.info;
-    while(true)
-    {
+    
+    
+    printf("\nThe algo number is: %d \n",algo);
+   
     if (algo == 0)
-    { // implement HPF
+    { 
+        // implement HPF
+        printf("The algo number is: %d",algo);
     }
+   
     else if (algo == 1)
+<<<<<<< HEAD
+    { 
+        //implement SRTN here
+        printf("The algo number is: %d",algo);
+=======
     { //implement SRTN here
         queue *currentProcesses = createQueue();
         msgPBuff receivedProcess;
@@ -86,10 +103,24 @@ int main(int argc, char *argv[])
                 }
             }
         }
+>>>>>>> cab854a0241ab7e1b08ce2175589dcff55a8e198
     }
+   
     else
-    { //implement RR
-        quantum = algo - 1;
+    { 
+       //implement RR
+        
+       printf("The algo number is: %d",algo);
+       //doRR(quantum,algo);
+    }
+ 
+    destroyClk(true);
+}
+
+
+void doRR(int quantum,int algo)
+{
+     quantum = algo - 2;
         queue *currentProcesses = createQueue();
         FILE *outputFile;
         outputFile = fopen("./output.txt", "a");
@@ -97,7 +128,11 @@ int main(int argc, char *argv[])
         int waitingTime = 0;
         while (1)
         {
+<<<<<<< HEAD
+            printf("\nThe algo number is: %d \n",algo);
+=======
             char outputString[] = "#At time x process y state arr w total z remain y wait k \n";
+>>>>>>> cab854a0241ab7e1b08ce2175589dcff55a8e198
             int PCBRCV = msgrcv(processQueueID, &receivedProcess, sizeof(receivedProcess), processMType, IPC_NOWAIT);
             fwrite(outputString, 1, sizeof(outputString), outputFile);
             if (PCBRCV > 0)
@@ -164,7 +199,37 @@ int main(int argc, char *argv[])
                 crntPtr = crntPtr->next;
             }
         }
-    }
-    }
-    destroyClk(true);
 }
+
+int recieveMSG(int ID)
+{
+
+
+
+    algoInfo receivedInfo;
+    int MSGRCV = msgrcv(ID, &receivedInfo, sizeof(receivedInfo.info), algoMType, IPC_NOWAIT);
+    
+    if(MSGRCV == -1)
+    {
+        perror("Error recieving !!!!!!!!!");
+    }
+    else
+    {
+         return (receivedInfo.info);
+    }  
+
+}
+
+void createMessageQueue(int *msgID,int ID)
+{
+
+    (*msgID) = msgget((ID),IPC_CREAT | 0666 );
+   
+   if((*msgID)==-1)
+    {
+        perror("Error in create");
+    }
+
+}
+
+
