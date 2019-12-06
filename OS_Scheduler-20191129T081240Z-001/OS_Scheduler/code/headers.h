@@ -24,7 +24,7 @@ typedef short bool;
 #define SHKEY 300
 
 
- typedef struct algoInfo
+typedef struct algoInfo
 {
     long mtype;
     int info;
