@@ -10,7 +10,7 @@ int main(int argc, char *argv[])
     //upon termination release the clock resources
     int algoQueue = msgget(algoQueueID, IPC_CREAT | 0644);
     algoInfo receivedInfo;
-    int MSGRCV = msgrcv(algoQueueID, &receivedInfo, sizeof(receivedInfo.info), algoMType, !IPC_NOWAIT);
+    int MSGRCV = msgrcv(algoQueue, &receivedInfo, sizeof(receivedInfo.info), algoMType, !IPC_NOWAIT);
 
     int quantum;
     int algo = receivedInfo.info;

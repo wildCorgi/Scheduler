@@ -38,7 +38,7 @@ int main(int argc, char * argv[])
     algoInfo algo;
     algo.info = schedulingAlgo;
     algo.mtype = algoMType;
-    int algosend = msgsnd(algoQueueID, &algo, sizeof(algo), !IPC_NOWAIT );
+    int algosend = msgsnd(algoMsgID, &algo, sizeof(algo.info), !IPC_NOWAIT );
     // 3. Initiate and create the scheduler and clock processes.
    
     pid = fork();
