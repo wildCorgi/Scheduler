@@ -4,7 +4,8 @@
 
 void createMessageQueue(int *msgID,int ID);
 int  recieveMSG(int ID);
-void doRR(int quantum,int algo);
+PCB receiveProcess(int processID, int* PCBRCV);
+void doRR(int quantum,int algo, int processID);
 int main(int argc, char *argv[])
 {
     
@@ -15,8 +16,9 @@ int main(int argc, char *argv[])
     //upon termination release the clock resources
 
     int algoQueue;
+    int processID;
     createMessageQueue(&algoQueue,algoQueueID);   
-    
+    createMessageQueue(&processID, processQueueID);
     algo = recieveMSG(algoQueue);
     printf("The algo number is: %d",algo);
 
@@ -32,11 +34,6 @@ int main(int argc, char *argv[])
     }
    
     else if (algo == 1)
-<<<<<<< HEAD
-    { 
-        //implement SRTN here
-        printf("The algo number is: %d",algo);
-=======
     { //implement SRTN here
         queue *currentProcesses = createQueue();
         msgPBuff receivedProcess;
@@ -44,8 +41,9 @@ int main(int argc, char *argv[])
         node *excutedtPtr = NULL;
         while (1)
         {
+            int PCBRCV;
         fml:
-            int PCBRCV = 1;
+            PCBRCV = 1;
             while (PCBRCV > 0)
             {
                 PCBRCV = msgrcv(processQueueID, &receivedProcess, sizeof(receivedProcess), processMType, IPC_NOWAIT);
@@ -83,7 +81,7 @@ int main(int argc, char *argv[])
                     if (getClk() != time)
                     {
                         excutedtPtr->data.runTime--;
-                        time = getClk;
+                        time = getClk();
                     }
                 }
             }
@@ -99,11 +97,10 @@ int main(int argc, char *argv[])
                 if (getClk() != time)
                 {
                     excutedtPtr->data.runTime--;
-                    time = getClk;
+                    time = getClk();
                 }
             }
         }
->>>>>>> cab854a0241ab7e1b08ce2175589dcff55a8e198
     }
    
     else
@@ -111,33 +108,35 @@ int main(int argc, char *argv[])
        //implement RR
         
        printf("The algo number is: %d",algo);
-       //doRR(quantum,algo);
+       doRR(quantum,algo, processID);
     }
  
     destroyClk(true);
 }
 
 
-void doRR(int quantum,int algo)
+void doRR(int quantum,int algo, int  processID)
 {
-     quantum = algo - 2;
+        quantum = algo - 2;
         queue *currentProcesses = createQueue();
         FILE *outputFile;
         outputFile = fopen("./output.txt", "a");
-        msgPBuff receivedProcess;
+        char outputString[] = "#At time x process y state arr w total z remain y wait k \n";
+        fwrite(outputString, 1, sizeof(outputString), outputFile);
+        printf("passed a checkpoint. \n");
         int waitingTime = 0;
-        while (1)
+        int counter = 0;
+        int PCBRCV;
+
+        while (counter!=2)
         {
-<<<<<<< HEAD
             printf("\nThe algo number is: %d \n",algo);
-=======
-            char outputString[] = "#At time x process y state arr w total z remain y wait k \n";
->>>>>>> cab854a0241ab7e1b08ce2175589dcff55a8e198
-            int PCBRCV = msgrcv(processQueueID, &receivedProcess, sizeof(receivedProcess), processMType, IPC_NOWAIT);
-            fwrite(outputString, 1, sizeof(outputString), outputFile);
+            PCB rec = receiveProcess(processID, &PCBRCV);
+            
             if (PCBRCV > 0)
             {
-                enqueue(currentProcesses, receivedProcess.pcb);
+                enqueue(currentProcesses, rec);
+                printf("Enqueued correctly \n");
             }
             node *crntPtr = currentProcesses->front;
             while (crntPtr != NULL)
@@ -163,9 +162,7 @@ void doRR(int quantum,int algo)
                         execl("./process.out", "process.out", NULL);
                     }
                     else
-                    {
-
-                        
+                    {   
                         crntPtr->data.remainingTime = crntPtr->data.runTime - quantum;
                         int totalTime = crntPtr->data.runTime - crntPtr->data.remainingTime;
                         char printString[100];
@@ -192,13 +189,15 @@ void doRR(int quantum,int algo)
                     printString[100];
                     sprintf(printString, " At time %d process %d stopped arr %d total %d remain %d wait %d", (int) getClk(), crntPtr->data.processID, crntPtr->data.arrivalTime, totalTime, crntPtr->data.remainingTime, waitingTime);
                 }
-                int PCBRCV = msgrcv(processQueueID, &receivedProcess, sizeof(receivedProcess), processMType, IPC_NOWAIT);
+                rec = receiveProcess(processID, &PCBRCV);
                 if (PCBRCV > 0) {
-                    enqueue(currentProcesses, receivedProcess.pcb);
+                    enqueue(currentProcesses, rec);
+                
                 }                
                 crntPtr = crntPtr->next;
             }
         }
+        
 }
 
 int recieveMSG(int ID)
@@ -216,6 +215,23 @@ int recieveMSG(int ID)
     else
     {
          return (receivedInfo.info);
+    }  
+
+}
+
+ PCB receiveProcess(int processID, int * PCBRCV)
+{
+
+    msgPBuff receivedInfo;
+     (*PCBRCV) = msgrcv(processID, &receivedInfo, sizeof(receivedInfo.pcb), processMType, IPC_NOWAIT);
+    
+    if((*PCBRCV) == -1)
+    {
+        perror("Error recieving !!!!!!!!!");
+    }
+    else
+    {
+        return (receivedInfo.pcb);
     }  
 
 }
