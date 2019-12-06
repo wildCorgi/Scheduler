@@ -17,7 +17,7 @@
 typedef short bool;
 #define true 1
 #define false 0
-#define algoQueueID 1111
+#define algoQueueID 1234
 #define processQueueID 99
 #define processMType 1
 #define algoMType 2
