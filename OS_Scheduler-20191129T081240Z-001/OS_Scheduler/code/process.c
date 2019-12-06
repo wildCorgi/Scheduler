@@ -8,9 +8,9 @@ int main(int agrc, char * argv[])
     //testing
     //TODO it needs to get the remaining time from somewhere
     //remainingtime = ??;
-    remainingtime=stoi(argv[1]);
+    remainingtime=atoi(argv[1]);
     printf("A7A %d\n", remainingtime);
-    int lastclk=getClk;
+    int lastclk=getClk();
     while (remainingtime > 0)
     {
         if(lastclk!=getClk()){

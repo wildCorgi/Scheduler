@@ -2,6 +2,7 @@
 
 #include <stdio.h>      //if you don't use scanf/printf change this include
 #include <sys/types.h>
+#include <stdlib.h>
 #include <sys/stat.h>
 #include <sys/file.h>
 #include <sys/ipc.h>
@@ -38,15 +39,17 @@ typedef struct PCB {
     int priority;
     int turnaroundTime;
     int state; 
+    bool forked;
+    int forkID;
 } PCB;
 
 
 
-struct msgPBuff
+typedef struct msgPBuff
 {
     long  mtype;
     struct PCB pcb;
-};
+} msgPBuff;
 
 
 ///==============================

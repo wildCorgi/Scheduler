@@ -61,3 +61,14 @@ node* dequeue( queue* q)
         q->rear = NULL; 
     return temp; 
 } 
+
+node* findNode(queue * q, int pid) {
+    node* crntNode = q->front;
+    while (crntNode != NULL) {
+        if(crntNode->data.processID == pid) {
+            return crntNode;
+        }
+        crntNode = crntNode->next;
+    }
+    return NULL;
+}
