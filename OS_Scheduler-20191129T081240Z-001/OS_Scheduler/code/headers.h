@@ -41,6 +41,7 @@ typedef struct PCB {
     int state; 
     bool forked;
     int forkID;
+    int remainingTime;
 } PCB;
 
 
