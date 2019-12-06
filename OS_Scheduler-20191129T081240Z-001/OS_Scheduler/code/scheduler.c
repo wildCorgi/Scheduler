@@ -21,6 +21,71 @@ int main(int argc, char *argv[])
     }
     else if (algo == 1)
     { //implement SRTN here
+        queue *currentProcesses = createQueue();
+        msgPBuff receivedProcess;
+        //PCB *crntptr;
+        node *excutedtPtr = NULL;
+        while (1)
+        {
+        fml:
+            int PCBRCV = 1;
+            while (PCBRCV > 0)
+            {
+                PCBRCV = msgrcv(processQueueID, &receivedProcess, sizeof(receivedProcess), processMType, IPC_NOWAIT);
+                remainingTimeEnqueue(currentProcesses, receivedProcess.pcb);
+            }
+            node *crntPtr = currentProcesses->front;
+            if (crntPtr == NULL)
+                goto fml;
+            if (excutedtPtr == NULL)
+            {
+                excutedtPtr = crntPtr;
+            }
+            if (!excutedtPtr->data.forked)
+            {
+                int forkTime = getClk();
+                int time = getClk();
+                int forking = fork();
+                if (forking == -1)
+                {
+                    perror("Couldn't fork process. ");
+                }
+                else if (forking == 0)
+                {
+                    execl("./process.out", "process.out", NULL);
+                }
+                else
+                {
+                    crntPtr->data.forked = true;
+                    crntPtr->data.forkID = forking;
+                    if (excutedtPtr != currentProcesses->front)
+                    {
+                        int pid = excutedtPtr->data.forkID;
+                        kill(pid, SIGSTOP);
+                    }
+                    if (getClk() != time)
+                    {
+                        excutedtPtr->data.runTime--;
+                        time = getClk;
+                    }
+                }
+            }
+            else
+            {
+                int time = getClk();
+                kill(crntPtr->data.forkID, SIGCONT);
+                if (excutedtPtr != currentProcesses->front)
+                {
+                    int pid = excutedtPtr->data.forkID;
+                    kill(pid, SIGSTOP);
+                }
+                if (getClk() != time)
+                {
+                    excutedtPtr->data.runTime--;
+                    time = getClk;
+                }
+            }
+        }
     }
     else
     { //implement RR
