@@ -1,5 +1,8 @@
+#pragma once
+
 #include <stdio.h>      //if you don't use scanf/printf change this include
 #include <sys/types.h>
+#include <stdlib.h>
 #include <sys/stat.h>
 #include <sys/file.h>
 #include <sys/ipc.h>
@@ -16,16 +19,16 @@ typedef short bool;
 #define false 0
 #define algoQueueID 1111
 #define processQueueID 99
-
+#define processMType 1
+#define algoMType 2
 #define SHKEY 300
 
 
- typedef struct algoInfo
+typedef struct algoInfo
 {
     long mtype;
     int info;
 } algoInfo;
-
 
 
 typedef struct PCB {
@@ -35,11 +38,20 @@ typedef struct PCB {
     int finishTime;
     int priority;
     int turnaroundTime;
-    enum state {
-        READY = 0 ,
-        RUNNING = 1
-    };
+    int state; 
+    bool forked;
+    int forkID;
+    int remainingTime;
 } PCB;
+
+
+
+typedef struct msgPBuff
+{
+    long  mtype;
+    struct PCB pcb;
+} msgPBuff;
+
 
 ///==============================
 //don't mess with this variable//
