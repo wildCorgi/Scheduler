@@ -8,18 +8,20 @@ int main(int agrc, char * argv[])
     //testing
     //TODO it needs to get the remaining time from somewhere
     //remainingtime = ??;
+
     remainingtime=atoi(argv[1]);
+    write(1,"process\n",8);
     printf("A7A %d\n", remainingtime);
     int lastclk=getClk();
     while (remainingtime > 0)
     {
-        if(lastclk!=getClk()){
+        if(lastclk!=getClk())
+        {
             remainingtime = remainingtime-1;
             lastclk=getClk();
-            }
-        printf("not A7A %d\n", remainingtime);
+        }
     }
-    
+    printf("not A7A %d\n", getpid());
     destroyClk(false);
     
     return 0;

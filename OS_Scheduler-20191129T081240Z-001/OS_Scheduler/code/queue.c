@@ -1,32 +1,43 @@
 
 #include "headers.h"
 
-typedef struct node {
+typedef struct node
+{
 struct node * next;
 PCB data;
 } node;
+
 typedef struct queue
 {
+   int count;
    node *front,*rear;
 }queue;
 queue* createQueue()
 {
+    
     struct queue* q = (queue*)malloc(sizeof(queue)); 
     q->front = q->rear = NULL; 
+    q->count=0;
     return q; 
 };
 void enqueue(queue* q, PCB newPCB)
 {
+  
     node* temp = (node*)malloc(sizeof(node));
     temp->data=newPCB;
     temp->next = NULL;
-    if(q->rear==NULL)
+    if(q->front==NULL)
     {
-        q->front = q->rear = temp;
-        return;
+       q->front=q->rear=temp;
     }
-    q->rear->next=temp;
-    q->rear = temp;
+    else 
+    {
+        q->rear->next = temp;
+        q->rear = temp;
+    }
+    q->count++;
+    q->rear->next = q->front;
+    
 };
 void priorityEnqueue(queue* q, PCB newPCB)
 {
@@ -76,23 +87,53 @@ void remainingTimeEnqueue(queue* q, PCB newPCB)
 };
 node* dequeue( queue* q) 
 {  
+    
     if (q->front == NULL) 
-        return NULL; 
-  
-    struct node* temp = q->front; 
-    q->front = q->front->next; 
-    if (q->front == NULL) 
-        q->rear = NULL; 
-    return temp; 
+    {
+        return NULL;
+    }    
+    
+    PCB  temp;
+    
+    if(q->front == q->rear)
+    {
+        temp = q->front->data;
+        free(q->front);
+        q->front = NULL;
+        q->rear = NULL;
+    }
+    else
+    {
+        node * nodetemp = q->front;
+        temp = nodetemp->data;
+        q->front =q->front->next;
+        q->rear->next=q->front;
+        free(nodetemp);
+    }
+    
+    node * val;
+    val->data = temp;
+    q->count--; 
+    return val; 
 } 
 
-node* findNode(queue * q, int pid) {
+node* findNode(queue * q, int nodeNumber) 
+{
+    int icount =-1 ;
     node* crntNode = q->front;
-    while (crntNode != NULL) {
-        if(crntNode->data.processID == pid) {
+    while (icount!=nodeNumber) 
+    {
+        icount++;
+        if(icount == nodeNumber)
+        {
+
             return crntNode;
         }
+        
         crntNode = crntNode->next;
+        if(crntNode==NULL)
+            break;
     }
+    perror("byrg3 null ya ro7 omak");
     return NULL;
 }

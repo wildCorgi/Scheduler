@@ -10,7 +10,7 @@ void sendAlgoNumber(int algoMsgID, int schedulingAlgo);
 int main(int argc, char *argv[])
 {
     //signal(SIGINT, clearResources);
-
+    bool END = false;
     int schedulingAlgo = -1;
     int quantum = 0;
     int processMsgID, algoMsgID;
@@ -79,22 +79,18 @@ int main(int argc, char *argv[])
         int x = getClk();
         if (pcbs->front != NULL)
         {
+            int x = getClk();
             struct PCB temp;
+            perror("a7aih");
+            if(pcbs->front == NULL)
+                continue;
             if (pcbs->front->data.arrivalTime == x)
             {
-
                 temp = dequeue(pcbs)->data;
+                temp.forked=false;
                 sendProcess(temp, processMsgID);
-
-                printf("what the hell");
-                
-                if (pcbs->front == NULL)
-                    break;
             }
         }
-
-        if (pcbs->front == NULL)
-            break;
     }
 
     // 7. Clear clock resources
@@ -119,7 +115,7 @@ void sendProcess(struct PCB pcb, int processMsgID)
 
     if (send_val == -1)
     {
-        perror("Errror in Sending Process");
+        perror("Error in Sending Process");
     }
 }
 

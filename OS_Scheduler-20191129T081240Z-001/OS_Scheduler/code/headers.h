@@ -1,5 +1,5 @@
 #pragma once
-
+#include <string.h>
 #include <stdio.h>      //if you don't use scanf/printf change this include
 #include <sys/types.h>
 #include <stdlib.h>
@@ -38,6 +38,7 @@ typedef struct PCB {
     int finishTime;
     int priority;
     int turnaroundTime;
+    int pid;
     int state; 
     bool forked;
     int forkID;
