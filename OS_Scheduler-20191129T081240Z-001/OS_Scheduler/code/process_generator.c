@@ -3,7 +3,7 @@
 #include "queue.c"
 
 void clearResources(int);
-void readFile(queue *pcbs);
+int readFile(PCB * pcbs );
 void createMessageQueue(int *msgID, int ID);
 void sendProcess(struct PCB pc, int processMsgID);
 void sendAlgoNumber(int algoMsgID, int schedulingAlgo);
@@ -13,17 +13,17 @@ int main(int argc, char *argv[])
     bool END = false;
     int schedulingAlgo = -1;
     int quantum = 0;
-    int processMsgID, algoMsgID;
-    int pid;
+    int processesNumber =5;
+    int processMsgID;
+    PCB * pcbs = (PCB*)malloc(100 * sizeof(PCB)); 
 
     // TODO Initialization
     // 1. Read the input files.
 
     createMessageQueue(&processMsgID, processQueueID);
-    createMessageQueue(&algoMsgID, algoQueueID);
 
-    queue *pcbs = createQueue();
-    readFile(pcbs);
+
+    processesNumber = readFile(pcbs);
 
     // 2. Ask the user for the chosen scheduling algorithm and its parameters, if there are any.
 
@@ -43,12 +43,12 @@ int main(int argc, char *argv[])
         }
     }
 
-    schedulingAlgo += quantum - 1;
-    sendAlgoNumber(algoMsgID, schedulingAlgo);
+
+
 
     // 3. Initiate and create the scheduler and clock processes
 
-    pid = fork();
+    int pid = fork();
 
     if (pid == -1)
     {
@@ -67,30 +67,36 @@ int main(int argc, char *argv[])
     }
     else if (pid == 0)
     {
-        execl("./scheduler.out", "scheduler.out", NULL);
+        char str[64];
+        sprintf(str, "%d", schedulingAlgo);
+        char str1[64];
+        sprintf(str1, "%d", quantum);
+        char str2[64];
+        sprintf(str2, "%d", processesNumber);
+
+        execl("./scheduler.out", "scheduler.out", str,str1,str2,NULL);
     }
 
     // 4. Use this function after creating the clock process to initialize clock
 
     initClk();
+    int i=0;
 
     while (true)
     {
-        int x = getClk();
-        if (pcbs->front != NULL)
-        {
+        
             int x = getClk();
-            struct PCB temp;
-            perror("a7aih");
-            if(pcbs->front == NULL)
-                continue;
-            if (pcbs->front->data.arrivalTime == x)
+  
+            while(i < processesNumber && pcbs[i].arrivalTime <= x )
             {
-                temp = dequeue(pcbs)->data;
-                temp.forked=false;
-                sendProcess(temp, processMsgID);
+                x = getClk();
+                sendProcess(pcbs[i], processMsgID);
+                i++;
+                       
+                   
+                printf("ba3t le child\n");
+
             }
-        }
     }
 
     // 7. Clear clock resources
@@ -119,22 +125,6 @@ void sendProcess(struct PCB pcb, int processMsgID)
     }
 }
 
-void sendAlgoNumber(int algoMsgID, int schedulingAlgo)
-{
-
-    algoInfo algo;
-
-    algo.info = schedulingAlgo;
-    algo.mtype = algoMType;
-
-    int algosend = msgsnd(algoMsgID, &algo, sizeof(algo.info), !IPC_NOWAIT);
-
-    if (algosend == -1)
-    {
-        perror("Error Sending");
-    }
-}
-
 void createMessageQueue(int *msgID, int ID)
 {
 
@@ -146,9 +136,9 @@ void createMessageQueue(int *msgID, int ID)
     }
 }
 
-void readFile(queue *pcbs)
+int readFile(PCB * pcbs )
 {
-
+    int i=0;
     int info[4];
     FILE *fp;
     fp = fopen("Input.txt", "r");
@@ -164,10 +154,12 @@ void readFile(queue *pcbs)
             temp.arrivalTime = info[1];
             temp.runTime = info[2];
             temp.priority = info[3];
-            enqueue(pcbs, temp);
+            pcbs[i] = temp;
+            i++;
         }
         else
             continue;
     }
     fclose(fp);
+    return i;
 }

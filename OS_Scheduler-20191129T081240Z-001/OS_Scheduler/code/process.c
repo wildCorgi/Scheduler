@@ -1,4 +1,5 @@
 #include "headers.h"
+#include <time.h>
 
 /* Modify this file as needed*/
 int remainingtime;
@@ -8,20 +9,17 @@ int main(int agrc, char * argv[])
     //testing
     //TODO it needs to get the remaining time from somewhere
     //remainingtime = ??;
-
+    int current_time = 0;
+    double c1;
     remainingtime=atoi(argv[1]);
-    write(1,"process\n",8);
-    printf("A7A %d\n", remainingtime);
-    int lastclk=getClk();
-    while (remainingtime > 0)
+    printf("felP\n");
+    
+    while (remainingtime > current_time)
     {
-        if(lastclk!=getClk())
-        {
-            remainingtime = remainingtime-1;
-            lastclk=getClk();
-        }
+        c1 = clock();
+        current_time = (double)((c1)/(CLOCKS_PER_SEC)) ;
+        printf("Current P time: %d\n",current_time);
     }
-    printf("not A7A %d\n", getpid());
     destroyClk(false);
     
     return 0;

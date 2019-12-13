@@ -1,139 +1,78 @@
 
 #include "headers.h"
-
-typedef struct node
-{
-struct node * next;
-PCB data;
-} node;
-
-typedef struct queue
-{
-   int count;
-   node *front,*rear;
-}queue;
-queue* createQueue()
-{
-    
-    struct queue* q = (queue*)malloc(sizeof(queue)); 
-    q->front = q->rear = NULL; 
-    q->count=0;
-    return q; 
-};
-void enqueue(queue* q, PCB newPCB)
-{
+ 
+// Node 
+typedef struct node { 
+    PCB * data; 
   
-    node* temp = (node*)malloc(sizeof(node));
-    temp->data=newPCB;
-    temp->next = NULL;
-    if(q->front==NULL)
-    {
-       q->front=q->rear=temp;
-    }
-    else 
-    {
-        q->rear->next = temp;
-        q->rear = temp;
-    }
-    q->count++;
-    q->rear->next = q->front;
-    
-};
-void priorityEnqueue(queue* q, PCB newPCB)
-{
-    node* temp = (node*)malloc(sizeof(node));
-    temp->data=newPCB;
-    temp->next = NULL;
-    //if empty queue
-    if(q->rear==NULL)
-    {
-        q->front = q->rear = temp;
-        return;
-    }
-    //else
-    node* p = (node*)malloc(sizeof(node));
-    //pointer to front
-    p=q->front;
-    //get to the position wherer last item with priority equal to mine
-    while(p->data.priority>=temp->data.priority)
-    {
-        p=p->next;
-    }
-    temp->next=p->next;
-    p->next=temp;
-};
-void remainingTimeEnqueue(queue* q, PCB newPCB)
-{
-    node* temp = (node*)malloc(sizeof(node));
-    temp->data=newPCB;
-    temp->next = NULL;
-    //if empty queue
-    if(q->rear==NULL)
-    {
-        q->front = q->rear = temp;
-        return;
-    }
-    //else
-    node* p = (node*)malloc(sizeof(node));
-    //pointer to front
-    p=q->front;
-    //get to the position wherer last item with priority equal to mine
-    while(p->data.runTime>=temp->data.runTime)
-    {
-        p=p->next;
-    }
-    temp->next=p->next;
-    p->next=temp;
-};
-node* dequeue( queue* q) 
-{  
-    
-    if (q->front == NULL) 
-    {
-        return NULL;
-    }    
-    
-    PCB  temp;
-    
-    if(q->front == q->rear)
-    {
-        temp = q->front->data;
-        free(q->front);
-        q->front = NULL;
-        q->rear = NULL;
-    }
-    else
-    {
-        node * nodetemp = q->front;
-        temp = nodetemp->data;
-        q->front =q->front->next;
-        q->rear->next=q->front;
-        free(nodetemp);
-    }
-    
-    node * val;
-    val->data = temp;
-    q->count--; 
-    return val; 
+    // Lower values indicate higher priority 
+    int priority; 
+  
+    struct node* next; 
+  
+} Node; 
+  
+// Function to Create A New Node 
+Node* newNode(PCB * d, int p) 
+{ 
+    Node* temp = (Node*)malloc(sizeof(Node)); 
+    temp->data = d; 
+    temp->priority = p; 
+    temp->next = NULL; 
+  
+    return temp; 
 } 
-
-node* findNode(queue * q, int nodeNumber) 
-{
-    int icount =-1 ;
-    node* crntNode = q->front;
-    while (icount!=nodeNumber) 
-    {
-        icount++;
-        if(icount == nodeNumber)
-        {
-
-            return crntNode;
-        }
-        
-        crntNode = crntNode->next;
-        if(crntNode==NULL)
-            break;
-    }
-    perror("byrg3 null ya ro7 omak");
-    return NULL;
-}
+  
+// Return the value at head 
+PCB * peek(Node** head) 
+{ 
+    return (*head)->data; 
+} 
+  
+// Removes the element with the 
+// highest priority form the list 
+void pop(Node** head) 
+{ 
+    Node* temp = *head; 
+    (*head) = (*head)->next; 
+    free(temp); 
+} 
+  
+// Function to push according to priority 
+void push(Node** head, PCB * d, int p) 
+{ 
+    Node* start = (*head); 
+  
+    // Create new Node 
+    Node* temp = newNode(d, p); 
+  
+    // Special Case: The head of list has lesser 
+    // priority than new node. So insert new 
+    // node before head node and change head node. 
+    if ((*head)->priority < p) { 
+  
+        // Insert New Node before head 
+        temp->next = *head; 
+        (*head) = temp; 
+    } 
+    else { 
+  
+        // Traverse the list and find a 
+        // position to insert new node 
+        while (start->next != NULL && 
+               start->next->priority > p) { 
+            start = start->next; 
+        } 
+  
+        // Either at the ends of the list 
+        // or at required position 
+        temp->next = start->next; 
+        start->next = temp; 
+    } 
+} 
+  
+// Function to check is list is empty 
+int isEmpty(Node** head) 
+{ 
+    return (*head) == NULL; 
+} 
