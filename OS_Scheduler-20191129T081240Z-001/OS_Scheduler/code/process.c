@@ -2,25 +2,37 @@
 #include <time.h>
 
 /* Modify this file as needed*/
-int remainingtime;
+clock_t remainingtime;
 int main(int agrc, char * argv[])
 {
-    initClk();
+    //initClk();
     //testing
     //TODO it needs to get the remaining time from somewhere
     //remainingtime = ??;
-    int current_time = 0;
-    double c1;
-    remainingtime=atoi(argv[1]);
-    printf("felP\n");
+    clock_t current_time,start_t,last;
+    current_time = 0;
+    remainingtime=(clock_t)atoi(argv[1]);
+    //printf("felP\n");
+    last=0;
     
     while (remainingtime > current_time)
-    {
-        c1 = clock();
-        current_time = (double)((c1)/(CLOCKS_PER_SEC)) ;
-        printf("Current P time: %d\n",current_time);
+    {  
+
+       // current_time = (clock_t)getClk();
+        start_t = clock();
+        current_time = (double)((start_t)/(CLOCKS_PER_SEC)) ;
+        if(last!=current_time)
+        {
+            last=current_time;
+            printf("The process is in second number :  %d \n",(int)last);
+        }
+        
     }
-    destroyClk(false);
+
+   
+    kill(getppid(),SIGUSR1);
+    //destroyClk(false);
+    exit(0);
     
-    return 0;
+    
 }

@@ -1,78 +1,116 @@
-
 #include "headers.h"
- 
-// Node 
-typedef struct node { 
-    PCB * data; 
+
+typedef struct node {
+struct node * next;
+PCB data;
+} node;
+typedef struct queue
+{
+   node *front,*rear;
+}queue;
+queue* createQueue()
+{
+    struct queue* q = (queue*)malloc(sizeof(queue)); 
+    q->front = q->rear = NULL; 
+    return q; 
+};
+void enqueue(queue* q, PCB newPCB)
+{
+    node* temp = (node*)malloc(sizeof(node));
+    temp->data=newPCB;
+    temp->next = NULL;
+    if(q->rear==NULL)
+    {
+        q->front = q->rear = temp;
+        return;
+    }
+    q->rear->next=temp;
+    q->rear = temp;
+};
+void priorityEnqueue(queue* q, PCB newPCB)
+{
+    node* temp = (node*)malloc(sizeof(node));
+    temp->data=newPCB;
+    temp->next = NULL;
+    //if empty queue
+    if(q->rear==NULL)
+    {
+        q->front = q->rear = temp;
+        return;
+    }
+    //else
+    node* p = (node*)malloc(sizeof(node));
+    //pointer to front
+    p=q->front;
+    if(temp->data.priority < p->data.priority)
+    {
+        temp->next=q->front;
+        q->front = temp;
+        return;
+    }
+    //get to the position wherer last item with priority equal to mine
+    while((p->next)&&(p->next->data.priority < temp->data.priority))
+    {
+
+        p=p->next;
+    }
+
+    temp->next=p->next;
+    p->next=temp;
+    return;
+};
+
+void priorityTEnqueue(queue* q, PCB newPCB)
+{
+    node* temp = (node*)malloc(sizeof(node));
+    temp->data=newPCB;
+    temp->next = NULL;
+    //if empty queue
+    if(q->rear==NULL)
+    {
+        q->front = q->rear = temp;
+        return;
+    }
+    //else
+    node* p = (node*)malloc(sizeof(node));
+    //pointer to front
+    p=q->front;
+    if(temp->data.remainingTime < p->data.remainingTime)
+    {
+        temp->next=q->front;
+        q->front = temp;
+        return;
+    }
+    //get to the position wherer last item with priority equal to mine
+    while((p->next)&&(p->next->data.remainingTime < temp->data.remainingTime))
+    {
+
+        p=p->next;
+    }
+
+    temp->next=p->next;
+    p->next=temp;
+    return;
+};
+node* dequeue( queue* q) 
+{  
+    if (q->front == NULL) 
+        return NULL; 
   
-    // Lower values indicate higher priority 
-    int priority; 
-  
-    struct node* next; 
-  
-} Node; 
-  
-// Function to Create A New Node 
-Node* newNode(PCB * d, int p) 
-{ 
-    Node* temp = (Node*)malloc(sizeof(Node)); 
-    temp->data = d; 
-    temp->priority = p; 
-    temp->next = NULL; 
-  
+    struct node* temp = q->front; 
+    q->front = q->front->next; 
+    if (q->front == NULL) 
+        q->rear = NULL; 
     return temp; 
 } 
-  
-// Return the value at head 
-PCB * peek(Node** head) 
-{ 
-    return (*head)->data; 
-} 
-  
-// Removes the element with the 
-// highest priority form the list 
-void pop(Node** head) 
-{ 
-    Node* temp = *head; 
-    (*head) = (*head)->next; 
-    free(temp); 
-} 
-  
-// Function to push according to priority 
-void push(Node** head, PCB * d, int p) 
-{ 
-    Node* start = (*head); 
-  
-    // Create new Node 
-    Node* temp = newNode(d, p); 
-  
-    // Special Case: The head of list has lesser 
-    // priority than new node. So insert new 
-    // node before head node and change head node. 
-    if ((*head)->priority < p) { 
-  
-        // Insert New Node before head 
-        temp->next = *head; 
-        (*head) = temp; 
-    } 
-    else { 
-  
-        // Traverse the list and find a 
-        // position to insert new node 
-        while (start->next != NULL && 
-               start->next->priority > p) { 
-            start = start->next; 
-        } 
-  
-        // Either at the ends of the list 
-        // or at required position 
-        temp->next = start->next; 
-        start->next = temp; 
-    } 
-} 
-  
-// Function to check is list is empty 
-int isEmpty(Node** head) 
-{ 
-    return (*head) == NULL; 
-} 
+
+node* findNode(queue * q, int pid) {
+    node* crntNode = q->front;
+    while (crntNode != NULL) {
+        if(crntNode->data.processID == pid) {
+            return crntNode;
+        }
+        crntNode = crntNode->next;
+    }
+    return NULL;
+}

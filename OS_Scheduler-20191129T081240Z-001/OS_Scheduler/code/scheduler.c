@@ -1,75 +1,121 @@
 
 #include "queue.c"
 
+void processDone(int);
+void processKilled(int);
+pid_t pid;
+int x;
+int algo;
+int processesNumber;
+int quantum ;
+int finishedProcesses =0;
+int PCBRCV;
+struct PCB  temp;
+FILE *outputFile;
+queue * pq;
+msgPBuff receivedInfo;
+
 
 void createMessageQueue(int *msgID,int ID);
-int  recieveMSG(int ID);
-PCB * receiveProcess(int processID, int* PCBRCV);
 
 void doRR(int quantum,int algo, int processID);
+
 void doHPF(int processID,int finishedProcesses,int processesNumber);
-Node* pq ;
+void doSRTN()
+
 int main(int argc, char *argv[])
 {
-    PCB * pcbs = (PCB*)malloc(100 * sizeof(PCB)); 
-    int processesNumber;
-    int quantum ;
-    int algo;
-    int finishedProcesses =0;
-    int PCBRCV;
-    initClk();
- 
+    signal(SIGUSR1,processDone);
+    signal(SIGCHLD,processKilled);
+    pq = createQueue();
+
+     
     //TODO implement the scheduler :)
     //upon termination release the clock resources
 
     int processID;
     createMessageQueue(&processID, processQueueID);
+    
     algo = atoi(argv[1]);
     quantum = atoi(argv[2]); 
     processesNumber = atoi(argv[3]);
-    PCB  * temp;
+
+
+    initClk();
     
-    printf("The algo number is: %d\n",algo);
-    printf("The quantum number is: %d\n",quantum);
-    printf("The process number is: %d\n",processesNumber);
-   
-   
+
     if (algo == 1)
     { 
         // implement HPF
+      
+      
 
-      msgPBuff receivedInfo;
-      PCBRCV = msgrcv(processID, &receivedInfo, sizeof(receivedInfo.pcb), processMType, !IPC_NOWAIT);;
-      temp = &receivedInfo.pcb;
-     
-      pq = newNode(temp, temp->priority); 
-      while(PCBRCV != - 1)
+      while(true)
       {
-          temp = receiveProcess(processID,&PCBRCV);
-          if(PCBRCV!=-1)
-          {
-            push(&pq,temp,temp->priority);
-          }
 
+            PCBRCV = msgrcv(processID, &receivedInfo, sizeof(receivedInfo.pcb), processMType, !IPC_NOWAIT);;
+
+            if(receivedInfo.pcb.processID != recievingDone)
+            {
+     
+                    priorityEnqueue(pq,receivedInfo.pcb);
+  
+            }
+            else
+            {
+                break;
+            } 
+            
       }
-    
-
        doHPF(processID,finishedProcesses,processesNumber);
     }
    
+
+
+
+
     else if (algo == 2)
     { 
         //implement SRTN here
+             
+
+      while(true)
+      {
+
+            PCBRCV = msgrcv(processID, &receivedInfo, sizeof(receivedInfo.pcb), processMType, !IPC_NOWAIT);;
+
+            if(receivedInfo.pcb.processID != recievingDone)
+            {
+     
+                    priorityTEnqueue(pq,receivedInfo.pcb);
+  
+            }
+            else
+            {
+                break;
+            } 
+            
+      }
+       doSRTN(processID,finishedProcesses,processesNumber);
+
       
     }
+
+
+
+
+
    
     else
     { 
        //implement RR
        doRR(quantum,algo, processID);
     }
- 
+     
+
     destroyClk(true);
+    raise(SIGKILL);
+    
 }
 
 
@@ -78,64 +124,68 @@ int main(int argc, char *argv[])
 
 
 void doHPF(int processID,int finishedProcesses,int processesNumber)
-{
-    PCB * temp;
-    FILE *outputFile;
+{ 
+    
+   
     outputFile = fopen("./output.txt", "a");
     char outputString[] = "#At time x process y state arr w total z remain y wait k\n";
     fwrite(outputString, 1, strlen(outputString), outputFile);
     fclose(outputFile);
+    x = getClk();
     while(finishedProcesses!=processesNumber)
     {
 
-        temp = peek(&pq);
-        pop(&pq);
-        
-        printf("Process %d arrived with rem time = %d \n",temp->processID,temp->runTime);
-    
-        int pid = fork();
+
+        temp = (pq->front->data)  ;   
+        dequeue(pq);  
+      
+     
+
+        pid = fork();
 
         if (pid == -1)
         {
             perror("Error in fork!!");
         }
+
         else if (pid == 0)
         { 
-            int x = getClk();
-            temp->forked = true;
-            temp->remainingTime = temp->runTime;
-            int waitingTime = x - temp->arrivalTime;
-            int totalTime = temp->runTime;
+            
+            temp.startTime = x;
+            temp.waitingTime = getClk()-temp.arrivalTime;
+            temp.remainingTime = temp.runTime;
+            temp.finishTime = temp.runTime+temp.startTime;
             char printString[120];
             char str[64];
-            sprintf(str, "%d", temp->remainingTime);
+            sprintf(str, "%d", temp.remainingTime);
             outputFile = fopen("./output.txt", "a");
-            sprintf(printString,"At time %d process %d started arr %d total %d remain %d wait %d\n",  x, temp->processID, temp->arrivalTime, totalTime, temp->remainingTime, waitingTime); 
+            sprintf(printString,"At time %d process %d started arr %d total %d remain %d wait %d\n",  x, temp.processID, temp.arrivalTime ,temp.runTime ,temp.remainingTime, temp.waitingTime); 
             fwrite(printString, sizeof(char), strlen(printString), outputFile);
             fclose(outputFile);
-            alarm(temp->remainingTime);
             execl("./process.out", "process.out ",str,NULL);
-            
-        }
-        temp->pid = pid;
-        int PCBRCV = 0;
-        msgPBuff receivedInfo;
 
-        while(PCBRCV !=-1)
+        }
+        
+
+
+
+        while(true)
         {
 
             PCBRCV = msgrcv(processID, &receivedInfo, sizeof(receivedInfo.pcb), processMType, !IPC_NOWAIT);
-            
-            if(PCBRCV != -1)
-            {
-            push(&pq,&receivedInfo.pcb,receivedInfo.pcb.priority);
-            }
+
+
             if(PCBRCV==-1)
             {
                 finishedProcesses++;
+                break;
             }
-
+            else
+            {
+               priorityEnqueue(pq,receivedInfo.pcb);
+            } 
         } 
+
     }
 
 }
@@ -146,139 +196,39 @@ void doHPF(int processID,int finishedProcesses,int processesNumber)
 
 void doRR(int quantum,int algo, int  processID)
 {
- //        int inActive = 0;
-    // FILE *outputFile;
-    // outputFile = fopen("./output.txt", "a");
-    // char outputString[] = "#At time x process y state arr w total z remain y wait k\n";
-    // fwrite(outputString, 1, strlen(outputString), outputFile);
-    // fclose(outputFile);
-    // int rc;
-    // int num_messages =1;
-    // struct msqid_ds buf;
-    // int totalTime = 0;  
-    // int waitingTime = 0;
-    // int pid;
-    // int x;
-    // node * root;
-    // node * dataNode;
-    // PCB data;
-    // int rec_val = 0;
-    // queue * currentProcesses = createQueue();
-    // while(true)
-    // {
-    //     x = getClk();
-    //     rc = msgctl(processID, IPC_STAT, &buf);
-    //     num_messages = buf.msg_qnum;
-    //     rec_val=0;
-    //     while(num_messages>0 )
-    //     {
-              
 
-            
-    //         rc = msgctl(processID, IPC_STAT, &buf);
-    //         num_messages = buf.msg_qnum;
-    //         printf("The messages in the queue is : %d\n",num_messages);
-    //         if(num_messages == 0)
-    //         { 
-    //                break;
-    //         }
-    //         PCB rec = receiveProcess(processID, &rec_val);
-    //         if(rec_val!=-1)
-    //         {
-    //             enqueue(currentProcesses, rec);
-    //             inActive++;
-    //             write(1,"Enqueued!!\n",strlen("Enqueued!!\n"));
-    //         }
-    //     }
-
-    //     //write(1,"checkpoint1\n",12);
-    //     //printf("the cp count is: %d\n",currentProcesses->count);
-    //     dataNode = currentProcesses->front; 
-    //     x = getClk();
-    //     if(dataNode==NULL)
-    //     {
-    //           // write(sizeof(char),"bnull y afal7\n",strlen("bnull y afal7"));
-    //     } 
-    //     for(int i=0;i<currentProcesses->count;i++)
-    //     {
-
-    //        //write(1,"checkpoint2\n",12);
-    //        // printf("the i is: %d\n",i);
-    //        //printf("the cp count is: %d\n",currentProcesses->count);
-    //         x = getClk();
-    //         dataNode = findNode(currentProcesses,i);          
-    //         data = dataNode->data;
-    //         if(dataNode==NULL)
-    //             continue;
-    //         //printf("the arrival time is: %d\n",dataNode->data.arrivalTime);
-    //         //printf("the current time is: %d\n",x);
-          
-    //         if(data.arrivalTime <= x && data.forked ==  false)
-    //         {
-    //             write(1,"checkpoint3\n",12);
-
-    //             pid = fork();
-            
-    //             if (pid == -1)
-    //             {
-    //                 perror("Error in fork!!");
-    //             }
-    //             else if (pid == 0)
-    //             { 
-    //                 inActive--;
-    //                 printf("sha3'al el7 \n");
-    //                 write(1,"checkpoint4\n",12);
-    //                 data.forked = true;
-    //                 data.remainingTime = data.runTime;
-    //                 totalTime = data.runTime;
-    //                 char printString[120];
-    //                 char str[64];
-    //                 sprintf(str, "%d", data.remainingTime);
-    //                 printf("the remaining time is: %d\n",data.remainingTime);
-    //                 outputFile = fopen("./output.txt", "a");
-    //                 sprintf(printString,"At time %d process %d started arr %d total %d remain %d wait %d\n",  x, data.processID, data.arrivalTime, totalTime, data.remainingTime, waitingTime); 
-    //                 fwrite(printString, sizeof(char), strlen(printString), outputFile);
-    //                 fclose(outputFile);
-    //                 execl("./process.out", "process.out ",str,NULL);
-    //             }
-    //             else 
-    //             {
-    //                 data.pid=pid;
-    //             }
-              
-                
-
-    //         }
-    //         else
-    //         {
-    //             write(sizeof(char),"A7A bgdddd!!!!",strlen("A7A bgdddd!!!!"));
-    //         }    
-
-    //     }
-
-    // }
-    
 }
  
 
 
 
 
- PCB * receiveProcess(int processID, int * PCBRCV)
- {
 
-    msgPBuff receivedInfo;
-     (*PCBRCV) = msgrcv(processID, &receivedInfo, sizeof(receivedInfo.pcb), processMType, IPC_NOWAIT);
-    
-    PCB * temp = &receivedInfo.pcb;
-    if((*PCBRCV)!=-1)   
-    {
-        return temp;
-    }  
-    else 
-        return temp;
+void processDone(int signum)
+{
+
+                if(algo == 1)
+                {
+
+                x = getClk();
+                temp.remainingTime = temp.runTime;
+                temp.TA = x - temp.arrivalTime;
+                temp.WTA = ((double)(temp.TA)/(double)(temp.runTime)) ;
+                temp.waitingTime = getClk()-temp.runTime;
+                char printString[200];
+                outputFile = fopen("./output.txt", "a");
+                sprintf(printString,"At time %d process %d finished arr %d total %d remain %d wait %d TA %d WTA %.2f\n",x, temp.processID, temp.arrivalTime, temp.runTime,0, temp.waitingTime,temp.TA,temp.WTA); 
+                fwrite(printString, sizeof(char), strlen(printString), outputFile);
+                fclose(outputFile);  
+                }
 
 }
+void processKilled(int signnum)
+{   
+  
+        kill(pid,SIGKILL);
+}
+
 
 void createMessageQueue(int *msgID,int ID)
 {

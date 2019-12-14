@@ -1,21 +1,21 @@
 
 #include "headers.h"
 #include "queue.c"
-
+int processMsgID;
 void clearResources(int);
 int readFile(PCB * pcbs );
 void createMessageQueue(int *msgID, int ID);
 void sendProcess(struct PCB pc, int processMsgID);
 void sendAlgoNumber(int algoMsgID, int schedulingAlgo);
+void schedulerDone(int);
 int main(int argc, char *argv[])
 {
-    //signal(SIGINT, clearResources);
-    bool END = false;
+    signal(SIGINT, clearResources);
     int schedulingAlgo = -1;
     int quantum = 0;
-    int processesNumber =5;
-    int processMsgID;
-    PCB * pcbs = (PCB*)malloc(100 * sizeof(PCB)); 
+    int processesNumber = 0 ;
+  
+    PCB * pcbs = (PCB*)malloc(1000* sizeof(PCB)); 
 
     // TODO Initialization
     // 1. Read the input files.
@@ -79,34 +79,43 @@ int main(int argc, char *argv[])
 
     // 4. Use this function after creating the clock process to initialize clock
 
-    initClk();
+    
     int i=0;
-
+    int x ;
+    initClk();
     while (true)
     {
         
-            int x = getClk();
-  
-            while(i < processesNumber && pcbs[i].arrivalTime <= x )
+            x = getClk();
+            if(i < processesNumber && pcbs[i].arrivalTime == x)
             {
-                x = getClk();
-                sendProcess(pcbs[i], processMsgID);
-                i++;
-                       
-                   
-                printf("ba3t le child\n");
+                while(i < processesNumber && pcbs[i].arrivalTime == x )
+                {
+                    sendProcess(pcbs[i], processMsgID);
+                    i++;
 
+                }
+                struct PCB temp;
+                temp.processID = recievingDone;
+                sendProcess(temp, processMsgID);
             }
     }
 
     // 7. Clear clock resources
-
+    //raise(SIGINT);   
     destroyClk(true);
+    raise(SIGKILL);
 }
 
 void clearResources(int signum)
 {
+    
     //TODO Clears all resources in case of interruption
+     
+     destroyClk(true);
+     msgctl(processMsgID,IPC_RMID,NULL);
+     raise(SIGKILL);
+
 }
 
 void sendProcess(struct PCB pcb, int processMsgID)
@@ -141,19 +150,19 @@ int readFile(PCB * pcbs )
     int i=0;
     int info[4];
     FILE *fp;
-    fp = fopen("Input.txt", "r");
+    fp = fopen("processes.txt", "r");
     char line[256];
     while (fgets(line, sizeof(line), fp) != NULL)
     {
         if (line[0] != '#')
         {
             sscanf(line, "%d\t%d\t%d\t%d", &info[0], &info[1], &info[2], &info[3]);
-            printf("%d\t%d\t%d\t%d\n", info[0], info[1], info[2], info[3]);
             struct PCB temp;
             temp.processID = info[0];
             temp.arrivalTime = info[1];
             temp.runTime = info[2];
             temp.priority = info[3];
+            temp.remainingTime = info[2];
             pcbs[i] = temp;
             i++;
         }

@@ -22,7 +22,7 @@ typedef short bool;
 #define processMType 1
 #define algoMType 2
 #define SHKEY 300
-
+#define recievingDone -1998
 
 typedef struct algoInfo
 {
@@ -31,16 +31,21 @@ typedef struct algoInfo
 } algoInfo;
 
 
-typedef struct PCB {
+typedef struct PCB 
+{
     int processID;
     int runTime;
     int arrivalTime;
     int finishTime;
     int priority;
     int turnaroundTime;
+    int startTime;
     int pid;
     int state; 
+    int waitingTime;
     bool forked;
+    int TA;
+    double WTA;
     int forkID;
     int remainingTime;
 } PCB;
