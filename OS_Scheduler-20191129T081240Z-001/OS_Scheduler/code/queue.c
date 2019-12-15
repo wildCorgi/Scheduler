@@ -7,15 +7,19 @@ PCB data;
 typedef struct queue
 {
    node *front,*rear;
+   int count;
 }queue;
 queue* createQueue()
 {
+    
     struct queue* q = (queue*)malloc(sizeof(queue)); 
     q->front = q->rear = NULL; 
+    q->count =0;
     return q; 
 };
 void enqueue(queue* q, PCB newPCB)
 {
+    q->count++;
     node* temp = (node*)malloc(sizeof(node));
     temp->data=newPCB;
     temp->next = NULL;
@@ -29,6 +33,7 @@ void enqueue(queue* q, PCB newPCB)
 };
 void priorityEnqueue(queue* q, PCB newPCB)
 {
+    q->count++;
     node* temp = (node*)malloc(sizeof(node));
     temp->data=newPCB;
     temp->next = NULL;
@@ -62,6 +67,7 @@ void priorityEnqueue(queue* q, PCB newPCB)
 
 void priorityTEnqueue(queue* q, PCB newPCB)
 {
+    q->count++;
     node* temp = (node*)malloc(sizeof(node));
     temp->data=newPCB;
     temp->next = NULL;
@@ -94,14 +100,22 @@ void priorityTEnqueue(queue* q, PCB newPCB)
 };
 node* dequeue( queue* q) 
 {  
+    if(q->count==0)
+        return NULL;
+
+        q->count--;
     if (q->front == NULL) 
         return NULL; 
   
     struct node* temp = q->front; 
     q->front = q->front->next; 
+    node * temp1 = temp;
+    free(temp);
+    printf("deq\n");
     if (q->front == NULL) 
         q->rear = NULL; 
-    return temp; 
+  
+    return temp1; 
 } 
 
 node* findNode(queue * q, int pid) {

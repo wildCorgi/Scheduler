@@ -15,12 +15,16 @@
 #include <signal.h>
 
 typedef short bool;
+#define stateStarted 1001
+#define stateResumed 1002
+#define stateStopped 1003
+#define stateFinished 1004 
 #define true 1
 #define false 0
 #define algoQueueID 1234
 #define processQueueID 99
-#define processMType 1
-#define algoMType 2
+#define processMType 100
+#define algoMType 200
 #define SHKEY 300
 #define recievingDone -1998
 
@@ -38,16 +42,15 @@ typedef struct PCB
     int arrivalTime;
     int finishTime;
     int priority;
-    int turnaroundTime;
     int startTime;
-    int pid;
     int state; 
     int waitingTime;
     bool forked;
     int TA;
     double WTA;
-    int forkID;
+    pid_t forkID;
     int remainingTime;
+    int lastStoppedTime;
 } PCB;
 
 
