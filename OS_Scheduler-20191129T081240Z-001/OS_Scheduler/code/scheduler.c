@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
 {
             signal(SIGUSR1,processDone);
             signal(SIGCHLD,SIG_IGN);
-            signal(SIGALRM,alarmREC);
+            signal(SIGUSR2,alarmREC);
             pq = createQueue();
 
             
@@ -135,7 +135,7 @@ void doSRTN()
     {
 
             x = getClk();
-            printf("the queue has %d processes\n",pq->count);
+
             if(pq->count != 0 )    
             {  
                 temp = (pq->front->data)  ;   
@@ -165,7 +165,7 @@ void doSRTN()
                 }
                 else
                 {
-                    printf("process cont\n");
+
                     setResumeState();
                     writeResumeState();
                     kill(temp.forkID,SIGCONT);                    
@@ -218,8 +218,9 @@ void doRR()
                         writeStartState();
                         if(quantum < temp.remainingTime)
                         { 
-                            printf("Zabt Quantaum\n");
+                          
                             alarm(quantum);
+      
                         }
                         execl("./process.out", "process.out ",str,NULL);
 
@@ -273,12 +274,6 @@ void processDone(int signum)
                     
 
 }
-void alarmREC(int signnum)
-{   
-printf("recieved alarm\n");
-}
-
-
 
 
 
@@ -314,7 +309,7 @@ void writeStartState()
         char printString[120];
        
         outputFile = fopen("./output.txt", "a");
-        sprintf(printString,"At time %d process %d started arr %d total %d remain %d wait %d\n",  x, temp.processID, temp.arrivalTime ,temp.runTime ,temp.remainingTime, temp.waitingTime); 
+        sprintf(printString,"At time %d process %d started arr %d total %d remain %d wait %d\n",  y, temp.processID, temp.arrivalTime ,temp.runTime ,temp.remainingTime, temp.waitingTime); 
         fwrite(printString, sizeof(char), strlen(printString), outputFile);
         fclose(outputFile);
 
@@ -348,6 +343,7 @@ void writeResumeState()
 }
 void setStartState()
 {
+                    y = getClk();
                     temp.state = stateStarted;                   
                     temp.startTime = x;
                     temp.waitingTime = getClk()-temp.arrivalTime;
@@ -479,7 +475,6 @@ void secondRecievePr()
                           if(temp.state != stateStarted && temp.state != stateResumed)
                           {
 
-                              printf("recieved a signal\n");
                               break;
                           }
                         }
@@ -507,7 +502,7 @@ void secondRecievePr()
                                 }
                                 else 
                                 {
-                                    printf("d5lt\n");
+                      
                                     priorityTEnqueue(pq,receivedInfo.pcb); 
                                 }   
                             }
@@ -526,18 +521,13 @@ void recieveRR()
 
                 while(true)
                 {
- 
+                       
+                       
                         PCBRCV = msgrcv(processID, &receivedInfo, sizeof(receivedInfo.pcb), processMType, !IPC_NOWAIT);
 
                         if(PCBRCV==-1)
                         {
-                            alarm(0);
-                            setPauseState();
-                            writePauseState();
-                            enqueue(pq,temp);
-                            printf("d5lt alf\n") ;
-                            kill(temp.forkID,SIGSTOP);  
-                          
+
 
                             break;
                         }
@@ -550,3 +540,15 @@ void recieveRR()
                         }   
                 }
 }
+void alarmREC(int signnum)
+{   
+
+                            alarm(0);
+                            setPauseState();
+                            writePauseState();
+                            enqueue(pq,temp);
+                            kill(temp.forkID,SIGSTOP);  
+                            signal(SIGALRM,alarmREC);
+}
+
+
