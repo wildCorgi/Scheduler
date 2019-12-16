@@ -111,7 +111,6 @@ node* dequeue( queue* q)
     q->front = q->front->next; 
     node * temp1 = temp;
     free(temp);
-    printf("deq\n");
     if (q->front == NULL) 
         q->rear = NULL; 
   

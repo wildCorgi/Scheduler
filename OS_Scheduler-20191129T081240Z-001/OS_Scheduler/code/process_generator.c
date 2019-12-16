@@ -97,6 +97,7 @@ int main(int argc, char *argv[])
                 }
                 struct PCB temp;
                 temp.processID = recievingDone;
+                temp.remainingTime = -1;
                 sendProcess(temp, processMsgID);
             }
     }
@@ -163,6 +164,7 @@ int readFile(PCB * pcbs )
             temp.runTime = info[2];
             temp.priority = info[3];
             temp.remainingTime = info[2];
+            temp.forked=false;
             pcbs[i] = temp;
             i++;
         }
