@@ -2,7 +2,7 @@
 #include "queue.c"
 #include <time.h>
 void processDone(int);
-void processKilled(int);
+void alarmREC(int);
 pid_t pid;
 int x = 0 , y = 0;
 int algo;
@@ -23,11 +23,16 @@ void createMessageQueue(int *msgID,int ID);
 void writeStarting();
 void writeStartState();
 void writeFinishState();
+void writeResumeState();
 void setStartState();
+void setResumeState();
 void setFinishState();
 void firstRecieve();
+void firstRecieveSRTN();
+void firstRecieveRR();
 void secondRecieve();
 void secondRecievePr();
+void recieveRR();
 
 void doRR();
 void doHPF();
@@ -35,47 +40,48 @@ void doSRTN();
 
 int main(int argc, char *argv[])
 {
-    signal(SIGUSR1,processDone);
-    signal(SIGCHLD,processKilled);
-    pq = createQueue();
+            signal(SIGUSR1,processDone);
+            signal(SIGCHLD,SIG_IGN);
+            signal(SIGALRM,alarmREC);
+            pq = createQueue();
 
-     
-    //TODO implement the scheduler :)
-    //upon termination release the clock resources
-
-
-    createMessageQueue(&processID, processQueueID);
-    
-    algo = atoi(argv[1]);
-    quantum = atoi(argv[2]); 
-    processesNumber = atoi(argv[3]);
+            
+            //TODO implement the scheduler :)
+            //upon termination release the clock resources
 
 
-    initClk();
-    
+            createMessageQueue(&processID, processQueueID);
+            
+            algo = atoi(argv[1]);
+            quantum = atoi(argv[2]); 
+            processesNumber = atoi(argv[3]);
 
-    if (algo == 1)
-    { 
-        // implement HPF
-        firstRecieve();
-        doHPF();
-    }
-    else if (algo == 2)
-    { 
-        //implement SRTN here     
-        firstRecieve();
-        doSRTN();
-    }
-    else
-    { 
-       //implement RR
-        firstRecieve();
-        doRR();
-    }
-     
 
-    destroyClk(true);
-    raise(SIGKILL);
+            initClk();
+            
+
+            if (algo == 1)
+            { 
+                // implement HPF
+                firstRecieve();
+                doHPF();
+            }
+            else if (algo == 2)
+            { 
+                //implement SRTN here     
+                firstRecieveSRTN();
+                doSRTN();
+            }
+            else
+            { 
+            //implement RR
+                firstRecieveRR();
+                doRR();
+            }
+            
+
+            destroyClk(true);
+            raise(SIGKILL);
     
 }
 
@@ -129,11 +135,12 @@ void doSRTN()
     {
 
             x = getClk();
+            printf("the queue has %d processes\n",pq->count);
             if(pq->count != 0 )    
             {  
                 temp = (pq->front->data)  ;   
                 dequeue(pq);
-               
+
                 
                 if(!temp.forked)
                 {   
@@ -158,8 +165,9 @@ void doSRTN()
                 }
                 else
                 {
-                    temp.state = stateResumed;
-                    temp.waitingTime += getClk() - temp.lastStoppedTime;
+                    printf("process cont\n");
+                    setResumeState();
+                    writeResumeState();
                     kill(temp.forkID,SIGCONT);                    
                 }
 
@@ -180,23 +188,17 @@ void doRR()
 
 
 
-    outputFile = fopen("./output.txt", "a");
-    char outputString[] = "#At time x process y state arr w total z remain y wait k\n";
-    fwrite(outputString, 1, strlen(outputString), outputFile);
-    fclose(outputFile);
-    x = getClk();
+    writeStarting();
+   
     while(finishedProcesses!=processesNumber)
     {
+            x = getClk();
 
             if(pq->count != 0)    
             {  
 
-                if(looper== NULL)
-                {
-                    looper = pq->front;
-                }  
-                temp = (looper->data)  ;   
-                looper = looper->next;
+                temp = (pq->front->data)  ;   
+                dequeue(pq);
                 x = getClk();
                 if(!temp.forked)
                 {   
@@ -210,88 +212,34 @@ void doRR()
                     else if (pid == 0)
                     { 
 
-                        temp.startTime = x;
-                        temp.state = stateStarted;
-                        temp.waitingTime = x-temp.arrivalTime;                
-                        char printString[120];
+                        setStartState();
                         char str[64];
                         sprintf(str, "%d", temp.remainingTime);
-                        outputFile = fopen("./output.txt", "a");
-                        sprintf(printString,"At time %d process %d started arr %d total %d remain %d wait %d\n",  x, temp.processID, temp.arrivalTime ,temp.runTime ,temp.remainingTime, temp.waitingTime); 
-                        fwrite(printString, sizeof(char), strlen(printString), outputFile);
-                        fclose(outputFile);
-                        if(quantum>temp.remainingTime)
-                           alarm(quantum);
-
+                        writeStartState();
+                        if(quantum < temp.remainingTime)
+                        { 
+                            printf("Zabt Quantaum\n");
+                            alarm(quantum);
+                        }
                         execl("./process.out", "process.out ",str,NULL);
 
                     }
-                    temp.lastStoppedTime = getClk();
-                    lastT=getClk();temp.startTime = x;
-                    temp.state = stateStarted;
-                    temp.waitingTime = getClk()-temp.arrivalTime;           
-                    temp.forkID = pid;
+                    setStartState();
                     temp.forkID = pid;
                 }
                 else
                 {
-                    temp.state = stateResumed;
-                    temp.waitingTime += getClk() - temp.lastStoppedTime;
-                    if(quantum>temp.remainingTime)
+                    setResumeState();
+                    writeResumeState();
+                    if(quantum<temp.remainingTime)
+                    { 
                         alarm(quantum);
-
+                    }
                     kill(temp.forkID,SIGCONT);                    
                 }
             }    
 
-                
-                while(true)
-                {
- 
-                        PCBRCV = msgrcv(processID, &receivedInfo, sizeof(receivedInfo.pcb), processMType, !IPC_NOWAIT);
-                                                
-                        y=getClk();
-                        if(y != lastT)
-                        {                        
-                        temp.remainingTime -= (y + temp.lastStoppedTime);
-                        lastT = y;
-                        }
-
-
-                        if(PCBRCV==-1)
-                        {
-                            break;
-                        }
-                        else
-                        {
-
-                            if(temp.remainingTime <= receivedInfo.pcb.remainingTime && receivedInfo.pcb.processID!=recievingDone)      
-                                priorityTEnqueue(pq,receivedInfo.pcb); 
-                            else
-                            {
-                                if(receivedInfo.pcb.processID==recievingDone) 
-                                {
-                                temp.remainingTime= temp.remainingTime - (y-x);
-                                kill(temp.forkID,SIGSTOP);
-                                temp.state = stateStopped;
-                                temp.lastStoppedTime = getClk();
-                                break;
-                                }
-                          
-                               
-                                priorityTEnqueue(pq,receivedInfo.pcb); 
-                            }
-                        }
-                        
-                    
-                    
-                    
-                }
-        
-
-
-        
-
+            recieveRR();    
 
 
     }
@@ -319,17 +267,15 @@ void processDone(int signum)
                 {
                     setFinishState();
                     writeFinishState(); 
+                    
                 }
                     signal(SIGUSR1,processDone);
-                    signal(SIGCHLD,processKilled);
+                    
 
 }
-void processKilled(int signnum)
+void alarmREC(int signnum)
 {   
-  
-        kill(pid,SIGKILL);
-        signal(SIGUSR1,processDone);
-        signal(SIGCHLD,processKilled);
+printf("recieved alarm\n");
 }
 
 
@@ -391,6 +337,15 @@ void writePauseState()
                     fclose(outputFile); 
                                     
 }
+void writeResumeState()
+{
+                    char printString[200];
+                    outputFile = fopen("./output.txt", "a");
+                    sprintf(printString,"At time %d process %d resumed arr %d total %d remain %d wait %d\n",y, temp.processID, temp.arrivalTime, temp.runTime,temp.remainingTime, temp.waitingTime); 
+                    fwrite(printString, sizeof(char), strlen(printString), outputFile);
+                    fclose(outputFile); 
+                                    
+}
 void setStartState()
 {
                     temp.state = stateStarted;                   
@@ -408,15 +363,22 @@ void setFinishState()
                     temp.remainingTime = 0;
                     temp.TA = y - temp.arrivalTime;
                     temp.WTA = ((double)(temp.TA)/(double)(temp.runTime)) ;
-                    temp.waitingTime = y-x-temp.runTime;
+                    temp.waitingTime = y-temp.lastStoppedTime-temp.runTime;
 }
 void setPauseState()
-{
+{    
+                    y = getClk();
                     temp.state = stateStopped;
                     temp.lastStoppedTime = getClk();
+
                     temp.waitingTime = y-temp.lastStoppedTime -temp.runTime+temp.remainingTime;                  
 }
-
+void setResumeState()
+{   
+                    y=getClk();
+                    temp.state = stateResumed;
+                    temp.waitingTime += (y - temp.lastStoppedTime);
+}
 void firstRecieve()
 {
         while(true)
@@ -427,6 +389,43 @@ void firstRecieve()
             {
      
                     priorityEnqueue(pq,receivedInfo.pcb);
+  
+            }
+            else
+            {
+                break;
+            } 
+        }
+}
+
+void firstRecieveSRTN()
+{
+        while(true)
+        {
+            PCBRCV = msgrcv(processID, &receivedInfo, sizeof(receivedInfo.pcb), processMType, !IPC_NOWAIT);;
+
+            if(receivedInfo.pcb.processID != recievingDone)
+            {
+     
+                    priorityTEnqueue(pq,receivedInfo.pcb);
+  
+            }
+            else
+            {
+                break;
+            } 
+        }
+}
+void firstRecieveRR()
+{
+        while(true)
+        {
+            PCBRCV = msgrcv(processID, &receivedInfo, sizeof(receivedInfo.pcb), processMType, !IPC_NOWAIT);;
+
+            if(receivedInfo.pcb.processID != recievingDone)
+            {
+     
+                    enqueue(pq,receivedInfo.pcb);
   
             }
             else
@@ -476,8 +475,13 @@ void secondRecievePr()
 
                         if(PCBRCV==-1 )
                         {
-                            if(temp.state != stateFinished)
-                                break;
+                          
+                          if(temp.state != stateStarted && temp.state != stateResumed)
+                          {
+
+                              printf("recieved a signal\n");
+                              break;
+                          }
                         }
                         else
                         {
@@ -491,12 +495,12 @@ void secondRecievePr()
                                 if(receivedInfo.pcb.processID == recievingDone)
                                 {
                                     setPauseState();
+                                    writePauseState();
                                 }
 
                                 if((temp.state == stateFinished  || temp.state ==stateStopped) && receivedInfo.pcb.processID==recievingDone) 
                                 {
                                     
-                                    writePauseState();
                                     priorityTEnqueue(pq,temp);
                                     kill(temp.forkID,SIGSTOP);   
                                     break;
@@ -516,4 +520,33 @@ void secondRecievePr()
         
 
 
+}
+void recieveRR()
+{
+
+                while(true)
+                {
+ 
+                        PCBRCV = msgrcv(processID, &receivedInfo, sizeof(receivedInfo.pcb), processMType, !IPC_NOWAIT);
+
+                        if(PCBRCV==-1)
+                        {
+                            alarm(0);
+                            setPauseState();
+                            writePauseState();
+                            enqueue(pq,temp);
+                            printf("d5lt alf\n") ;
+                            kill(temp.forkID,SIGSTOP);  
+                          
+
+                            break;
+                        }
+                        else
+                        {
+                                if(receivedInfo.pcb.processID != recievingDone)
+                                {
+                                    enqueue(pq,receivedInfo.pcb);
+                                }
+                        }   
+                }
 }

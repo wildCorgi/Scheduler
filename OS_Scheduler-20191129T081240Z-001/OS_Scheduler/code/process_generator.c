@@ -166,6 +166,7 @@ int readFile(PCB * pcbs )
             temp.remainingTime = info[2];
             temp.forked=false;
             temp.lastStoppedTime =0;
+            temp.state=0;
             pcbs[i] = temp;
             i++;
         }
