@@ -4,13 +4,15 @@
 void processDone(int);
 void processKilled(int);
 pid_t pid;
-int x,y;
+int x = 0 , y = 0;
 int algo;
 int processesNumber;
 int quantum ;
+int lastT;
 int finishedProcesses =0;
 int PCBRCV;
 int processID;
+node * looper;
 struct PCB  temp;
 FILE *outputFile;
 queue * pq;
@@ -163,7 +165,6 @@ void doHPF()
                 temp.finishTime = temp.runTime+temp.startTime;
                 char printString[120];
                 char str[64];
-                sprintf(str, "%d", temp.remainingTime);
                 outputFile = fopen("./output.txt", "a");
                 sprintf(printString,"At time %d process %d started arr %d total %d remain %d wait %d\n",  x, temp.processID, temp.arrivalTime ,temp.runTime ,temp.remainingTime, temp.waitingTime); 
                 fwrite(printString, sizeof(char), strlen(printString), outputFile);
@@ -209,9 +210,13 @@ void doSRTN()
     while(finishedProcesses!=processesNumber)
     {
 
-
-                temp = (pq->front->data)  ;   
                 x = getClk();
+            if(pq->count != 0)    
+            {  
+                temp = (pq->front->data)  ;   
+                
+               
+                
                 if(!temp.forked)
                 {   
                     temp.forked = true;
@@ -223,10 +228,11 @@ void doSRTN()
 
                     else if (pid == 0)
                     { 
-
+                        temp.lastStoppedTime = getClk();
+                        temp.lastStoppedTime = 0;
                         temp.startTime = x;
                         temp.state = stateStarted;
-                        temp.waitingTime = x-temp.arrivalTime;                
+                        temp.waitingTime = getClk()-temp.arrivalTime;                
                         char printString[120];
                         char str[64];
                         sprintf(str, "%d", temp.remainingTime);
@@ -237,7 +243,12 @@ void doSRTN()
                         execl("./process.out", "process.out ",str,NULL);
 
                     }
+                    temp.lastStoppedTime = getClk();
+                    lastT=getClk();temp.startTime = x;
+                    temp.state = stateStarted;
+                    temp.waitingTime = getClk()-temp.arrivalTime;           
                     temp.forkID = pid;
+                    
                 }
                 else
                 {
@@ -245,17 +256,20 @@ void doSRTN()
                     temp.waitingTime += getClk() - temp.lastStoppedTime;
                     kill(temp.forkID,SIGCONT);                    
                 }
-                
 
                 
+            }   
+                        
                 while(true)
                 {
- 
+
                         PCBRCV = msgrcv(processID, &receivedInfo, sizeof(receivedInfo.pcb), processMType, !IPC_NOWAIT);
-                        y = getClk();
-                        temp.remainingTime= temp.remainingTime - (y-x);
-
-
+                        y=getClk();
+                        if(y != lastT)
+                        {                        
+                        temp.remainingTime -= (y + temp.lastStoppedTime);
+                        lastT = y;
+                        }
 
                         if(PCBRCV==-1)
                         {
@@ -265,16 +279,28 @@ void doSRTN()
                         {
 
                             if(temp.remainingTime <= receivedInfo.pcb.remainingTime && receivedInfo.pcb.processID!=recievingDone)      
-                                priorityTEnqueue(pq,receivedInfo.pcb); 
+                            {
+                                    priorityTEnqueue(pq,receivedInfo.pcb); 
+                            }
                             else
                             {
                                 if(receivedInfo.pcb.processID==recievingDone) 
                                 {
-                                temp.remainingTime= temp.remainingTime - (y-x);
-                                kill(temp.forkID,SIGSTOP);
-                                temp.state = stateStopped;
-                                temp.lastStoppedTime = getClk();
-                                break;
+                                    
+                                    temp.state = stateStopped;
+                                    temp.lastStoppedTime = getClk();
+                                  
+                                    temp.waitingTime = y-x-temp.runTime+temp.remainingTime;
+                                    char printString[200];
+                                    outputFile = fopen("./output.txt", "a");
+                                    sprintf(printString,"At time %d process %d paused arr %d total %d remain %d wait %d\n",y, temp.processID, temp.arrivalTime, temp.runTime,temp.remainingTime, temp.waitingTime); 
+                                    fwrite(printString, sizeof(char), strlen(printString), outputFile);
+                                    fclose(outputFile); 
+        
+
+                                    
+                                    kill(temp.forkID,SIGSTOP);
+                                    break;
                                 }
                           
                                
@@ -313,8 +339,15 @@ void doRR()
     while(finishedProcesses!=processesNumber)
     {
 
+            if(pq->count != 0)    
+            {  
 
-                temp = (pq->front->data)  ;   
+                if(looper== NULL)
+                {
+                    looper = pq->front;
+                }  
+                temp = (looper->data)  ;   
+                looper = looper->next;
                 x = getClk();
                 if(!temp.forked)
                 {   
@@ -344,6 +377,11 @@ void doRR()
                         execl("./process.out", "process.out ",str,NULL);
 
                     }
+                    temp.lastStoppedTime = getClk();
+                    lastT=getClk();temp.startTime = x;
+                    temp.state = stateStarted;
+                    temp.waitingTime = getClk()-temp.arrivalTime;           
+                    temp.forkID = pid;
                     temp.forkID = pid;
                 }
                 else
@@ -355,16 +393,20 @@ void doRR()
 
                     kill(temp.forkID,SIGCONT);                    
                 }
-                
+            }    
 
                 
                 while(true)
                 {
  
                         PCBRCV = msgrcv(processID, &receivedInfo, sizeof(receivedInfo.pcb), processMType, !IPC_NOWAIT);
-                        y = getClk();
-                        temp.remainingTime= temp.remainingTime - (y-x);
-
+                                                
+                        y=getClk();
+                        if(y != lastT)
+                        {                        
+                        temp.remainingTime -= (y + temp.lastStoppedTime);
+                        lastT = y;
+                        }
 
 
                         if(PCBRCV==-1)
@@ -426,7 +468,7 @@ void processDone(int signum)
                     temp.remainingTime = 0;
                     temp.TA = y - temp.arrivalTime;
                     temp.WTA = ((double)(temp.TA)/(double)(temp.runTime)) ;
-                    temp.waitingTime = y-temp.runTime + (y-x-temp.runTime);
+                    temp.waitingTime = y-x-temp.runTime;
                     char printString[200];
                     outputFile = fopen("./output.txt", "a");
                     sprintf(printString,"At time %d process %d finished arr %d total %d remain %d wait %d TA %d WTA %.2f\n",y, temp.processID, temp.arrivalTime, temp.runTime,0, temp.waitingTime,temp.TA,temp.WTA); 
@@ -444,7 +486,7 @@ void processDone(int signum)
                     temp.remainingTime = 0;
                     temp.TA = y - temp.arrivalTime;
                     temp.WTA = ((double)(temp.TA)/(double)(temp.runTime)) ;
-                    temp.waitingTime = y-temp.arrivalTime - temp.runTime;
+                    temp.waitingTime = y-x-temp.runTime;
                     char printString[200];
                     outputFile = fopen("./output.txt", "a");
                     sprintf(printString,"At time %d process %d finished arr %d total %d remain %d wait %d TA %d WTA %.2f\n",y, temp.processID, temp.arrivalTime, temp.runTime,0, temp.waitingTime,temp.TA,temp.WTA); 
@@ -462,13 +504,14 @@ void processDone(int signum)
                     temp.remainingTime = 0;
                     temp.TA = y - temp.arrivalTime;
                     temp.WTA = ((double)(temp.TA)/(double)(temp.runTime)) ;
-                    temp.waitingTime = y-temp.arrivalTime - temp.runTime;
+                    temp.waitingTime = y-x-temp.runTime;
                     char printString[200];
                     outputFile = fopen("./output.txt", "a");
                     sprintf(printString,"At time %d process %d finished arr %d total %d remain %d wait %d TA %d WTA %.2f\n",y, temp.processID, temp.arrivalTime, temp.runTime,0, temp.waitingTime,temp.TA,temp.WTA); 
                     fwrite(printString, sizeof(char), strlen(printString), outputFile);
                     fclose(outputFile); 
                     dequeue(pq);
+                    
                 }
                     signal(SIGUSR1,processDone);
                     signal(SIGCHLD,processKilled);
@@ -478,8 +521,8 @@ void processKilled(int signnum)
 {   
   
         kill(pid,SIGKILL);
-                            signal(SIGUSR1,processDone);
-                    signal(SIGCHLD,processKilled);
+        signal(SIGUSR1,processDone);
+        signal(SIGCHLD,processKilled);
 }
 
 
