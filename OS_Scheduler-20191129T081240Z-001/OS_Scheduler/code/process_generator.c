@@ -91,7 +91,6 @@ int main(int argc, char *argv[])
             {
                 while(i < processesNumber && pcbs[i].arrivalTime == x )
                 {
-                    printf("sent element with id : %d\n",pcbs[i].processID);
                     sendProcess(pcbs[i], processMsgID);
                     i++;
 

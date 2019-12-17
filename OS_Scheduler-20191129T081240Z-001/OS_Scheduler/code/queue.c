@@ -7,7 +7,7 @@ PCB data;
 
 typedef struct node1 {
 struct node1 * next;
-int data;
+float data;
 } node1;
 
 typedef struct nqueue
@@ -41,7 +41,7 @@ queue* createQueue()
     q->count =0;
     return q; 
 };
-void enqueueN(nqueue* q, int no)
+void enqueueN(nqueue* q, float no)
 {
     q->count++;
     node1* temp = (node1*)malloc(sizeof(node1));
@@ -161,7 +161,7 @@ node* dequeue( queue* q)
 } 
 
 
-int dequeueN( nqueue* q) 
+float dequeueN( nqueue* q) 
 {  
     if(q->count==0)
         return 0;
@@ -172,7 +172,7 @@ int dequeueN( nqueue* q)
   
     struct node1* temp = q->front; 
     q->front = q->front->next; 
-    int temp1 = temp->data;
+    float temp1 = temp->data;
     free(temp);
     if (q->front == NULL) 
         q->rear = NULL; 

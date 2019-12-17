@@ -1,6 +1,6 @@
-
 #include "queue.c"
 #include <time.h>
+#include <math.h>
 void processDone(int);
 void alarmREC(int);
 pid_t pid;
@@ -14,11 +14,15 @@ int PCBRCV;
 bool smallerRecieved;
 int processID;
 int totalRTime = 0;
+double TWTA = 0;
+int totalWaiting = 0;
+double deviation =0;
 node * looper;
 struct PCB  temp;
 FILE *outputFile;
 FILE *outputFile1;
 queue * pq;
+nqueue * npq;
 msgPBuff receivedInfo;
 
 
@@ -49,7 +53,7 @@ int main(int argc, char *argv[])
             signal(SIGCHLD,SIG_IGN);
             signal(SIGALRM,alarmREC);
             pq = createQueue();
-
+            npq = createNQueue();
             
             //TODO implement the scheduler :)
             //upon termination release the clock resources
@@ -334,10 +338,20 @@ void writeResumeState()
 }
 void writeFinalState()
 {
+  
+                    double AWTA = (double)(TWTA/processesNumber);
                     y = getClk();
+                    int count = npq->count;
+
+                    for(int i = 0 ; i<count;i++)
+                    {
+                            deviation += pow((dequeueN(npq) - (AWTA)),2);
+                            printf("deviation is %.2f\n",deviation);
+                    }
+                    deviation = sqrt(deviation/count);
                     char printString[200];
                     outputFile1 = fopen("./scheduler.perf", "a");
-                    sprintf(printString,"CPU Utilization = %.2f %% \n",((double)totalRTime/(double)y)*100); 
+                    sprintf(printString,"CPU Utilization = %.2f %% \nAvg WTA = %.2f\nAvg Waiting = %.2f\nStd WTA = %.2f \n",((double)totalRTime/(double)y)*100,AWTA,((double)totalWaiting/(double)processesNumber),deviation); 
                     fwrite(printString, sizeof(char), strlen(printString), outputFile1);
                     fclose(outputFile1); 
                                     
@@ -363,8 +377,11 @@ void setFinishState()
                     temp.remainingTime = 0;
                     temp.TA = y - temp.arrivalTime;
                     temp.WTA = ((double)(temp.TA)/(double)(temp.runTime)) ;
+                    TWTA+=temp.WTA;
                     //temp.waitingTime = y-temp.lastStoppedTime-temp.runTime;
                     temp.waitingTime=y-temp.arrivalTime-temp.runTime;
+                    totalWaiting += temp.waitingTime;
+                    enqueueN(npq,temp.WTA);
 }
 void setPauseState()
 {    
