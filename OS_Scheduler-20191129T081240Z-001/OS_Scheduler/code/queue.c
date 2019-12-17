@@ -4,11 +4,35 @@ typedef struct node {
 struct node * next;
 PCB data;
 } node;
+
+typedef struct node1 {
+struct node1 * next;
+int data;
+} node1;
+
+typedef struct nqueue
+{
+   node1 *front,*rear;
+   int count;
+}nqueue;
+
+
 typedef struct queue
 {
    node *front,*rear;
    int count;
 }queue;
+
+nqueue* createNQueue()
+{
+    
+    struct nqueue* q = (nqueue*)malloc(sizeof(nqueue)); 
+    q->front = q->rear = NULL; 
+    q->count =0;
+    return q; 
+};
+
+
 queue* createQueue()
 {
     
@@ -17,6 +41,21 @@ queue* createQueue()
     q->count =0;
     return q; 
 };
+void enqueueN(nqueue* q, int no)
+{
+    q->count++;
+    node1* temp = (node1*)malloc(sizeof(node1));
+    temp->data=no;
+    temp->next = NULL;
+    if(q->rear==NULL)
+    {
+        q->front = q->rear = temp;
+        return;
+    }
+    q->rear->next=temp;
+    q->rear = temp;
+};
+
 void enqueue(queue* q, PCB newPCB)
 {
     q->count++;
@@ -117,6 +156,25 @@ node* dequeue( queue* q)
     return temp1; 
 } 
 
+
+int dequeueN( nqueue* q) 
+{  
+    if(q->count==0)
+        return 0;
+
+        q->count--;
+    if (q->front == NULL) 
+        return 0; 
+  
+    struct node1* temp = q->front; 
+    q->front = q->front->next; 
+    int temp1 = temp->data;
+    free(temp);
+    if (q->front == NULL) 
+        q->rear = NULL; 
+  
+    return temp1; 
+} 
 node* findNode(queue * q, int pid) {
     node* crntNode = q->front;
     while (crntNode != NULL) {

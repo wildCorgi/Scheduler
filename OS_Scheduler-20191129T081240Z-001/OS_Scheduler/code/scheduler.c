@@ -345,7 +345,7 @@ void setStartState()
 {
                     y = getClk();
                     temp.state = stateStarted;                   
-                    temp.startTime = x;
+                    temp.startTime = y;
                     temp.waitingTime = getClk()-temp.arrivalTime;
                     temp.remainingTime = temp.runTime;
                     temp.finishTime = temp.runTime+temp.startTime;
@@ -365,15 +365,16 @@ void setPauseState()
 {    
                     y = getClk();
                     temp.state = stateStopped;
+                    temp.remainingTime -= y-(temp.startTime);
                     temp.lastStoppedTime = getClk();
-
-                    temp.waitingTime = y-temp.lastStoppedTime -temp.runTime+temp.remainingTime;                  
+                    temp.waitingTime += y -temp.runTime+ temp.remainingTime;                  
 }
 void setResumeState()
 {   
                     y=getClk();
                     temp.state = stateResumed;
                     temp.waitingTime += (y - temp.lastStoppedTime);
+
 }
 void firstRecieve()
 {
