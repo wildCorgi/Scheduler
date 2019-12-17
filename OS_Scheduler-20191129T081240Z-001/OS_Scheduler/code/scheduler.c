@@ -527,8 +527,6 @@ void recieveRR()
 
                         if(PCBRCV==-1)
                         {
-
-
                             break;
                         }
                         else
@@ -537,6 +535,11 @@ void recieveRR()
                                 {
                                     enqueue(pq,receivedInfo.pcb);
                                 }
+                                else if(temp.state == stateFinished ||temp.state == stateStopped)
+                                {
+                                    break;
+                                }
+
                         }   
                 }
 }
