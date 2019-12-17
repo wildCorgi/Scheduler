@@ -58,6 +58,7 @@ void enqueueN(nqueue* q, int no)
 
 void enqueue(queue* q, PCB newPCB)
 {
+    
     q->count++;
     node* temp = (node*)malloc(sizeof(node));
     temp->data=newPCB;
@@ -106,6 +107,9 @@ void priorityEnqueue(queue* q, PCB newPCB)
 
 void priorityTEnqueue(queue* q, PCB newPCB)
 {
+    //if(newPCB.runTime <= 0 )
+    // return;
+    printf("Entered element with id : %d\n",newPCB.processID);
     q->count++;
     node* temp = (node*)malloc(sizeof(node));
     temp->data=newPCB;

@@ -11,10 +11,13 @@ int quantum ;
 int lastT;
 int finishedProcesses =0;
 int PCBRCV;
+bool smallerRecieved;
 int processID;
+int totalRTime = 0;
 node * looper;
 struct PCB  temp;
 FILE *outputFile;
+FILE *outputFile1;
 queue * pq;
 msgPBuff receivedInfo;
 
@@ -24,6 +27,7 @@ void writeStarting();
 void writeStartState();
 void writeFinishState();
 void writeResumeState();
+void writeFinalState();
 void setStartState();
 void setResumeState();
 void setFinishState();
@@ -34,15 +38,16 @@ void secondRecieve();
 void secondRecievePr();
 void recieveRR();
 
-void doRR();
+
 void doHPF();
 void doSRTN();
+void doRR();
 
 int main(int argc, char *argv[])
 {
             signal(SIGUSR1,processDone);
             signal(SIGCHLD,SIG_IGN);
-            signal(SIGUSR2,alarmREC);
+            signal(SIGALRM,alarmREC);
             pq = createQueue();
 
             
@@ -79,7 +84,7 @@ int main(int argc, char *argv[])
                 doRR();
             }
             
-
+            writeFinalState();
             destroyClk(true);
             raise(SIGKILL);
     
@@ -133,7 +138,7 @@ void doSRTN()
 
     while(finishedProcesses!=processesNumber)
     {
-
+            smallerRecieved = false;
             x = getClk();
 
             if(pq->count != 0 )    
@@ -216,23 +221,21 @@ void doRR()
                         char str[64];
                         sprintf(str, "%d", temp.remainingTime);
                         writeStartState();
-                        if(quantum < temp.remainingTime)
-                        { 
-                          
-                            alarm(quantum);
-      
-                        }
                         execl("./process.out", "process.out ",str,NULL);
-
                     }
+
                     setStartState();
+                    if(quantum < temp.remainingTime)
+                    { 
+                        alarm(quantum);
+                    }
                     temp.forkID = pid;
                 }
                 else
                 {
                     setResumeState();
                     writeResumeState();
-                    if(quantum<temp.remainingTime)
+                    if(quantum < temp.remainingTime)
                     { 
                         alarm(quantum);
                     }
@@ -254,24 +257,12 @@ void doRR()
 void processDone(int signum)
 {
 
-                if(algo == 1)
-                {      
+                
+           
+                      
                     setFinishState();
                     writeFinishState();
-                }
-                else if(algo == 2)
-                {
-                    setFinishState();
-                    writeFinishState();
-                }
-                else if(algo ==3)
-                {
-                    setFinishState();
-                    writeFinishState(); 
-                    
-                }
-                    signal(SIGUSR1,processDone);
-                    
+                    signal(SIGUSR1,processDone);    
 
 }
 
@@ -299,7 +290,7 @@ void createMessageQueue(int *msgID,int ID)
 
 void writeStarting()
 {
-    outputFile = fopen("./output.txt", "a");
+    outputFile = fopen("./scheduler.log", "a");
     char outputString[] = "#At time x process y state arr w total z remain y wait k\n";
     fwrite(outputString, 1, strlen(outputString), outputFile);
     fclose(outputFile);
@@ -308,7 +299,7 @@ void writeStartState()
 {
         char printString[120];
        
-        outputFile = fopen("./output.txt", "a");
+        outputFile = fopen("./scheduler.log", "a");
         sprintf(printString,"At time %d process %d started arr %d total %d remain %d wait %d\n",  y, temp.processID, temp.arrivalTime ,temp.runTime ,temp.remainingTime, temp.waitingTime); 
         fwrite(printString, sizeof(char), strlen(printString), outputFile);
         fclose(outputFile);
@@ -317,7 +308,7 @@ void writeStartState()
 void writeFinishState()
 {
                     char printString[200];
-                    outputFile = fopen("./output.txt", "a");
+                    outputFile = fopen("./scheduler.log", "a");
                     sprintf(printString,"At time %d process %d finished arr %d total %d remain %d wait %d TA %d WTA %.2f\n",y, temp.processID, temp.arrivalTime, temp.runTime,0, temp.waitingTime,temp.TA,temp.WTA); 
                     fwrite(printString, sizeof(char), strlen(printString), outputFile);
                     fclose(outputFile); 
@@ -326,7 +317,7 @@ void writeFinishState()
 void writePauseState()
 {
                     char printString[200];
-                    outputFile = fopen("./output.txt", "a");
+                    outputFile = fopen("./scheduler.log", "a");
                     sprintf(printString,"At time %d process %d paused arr %d total %d remain %d wait %d\n",y, temp.processID, temp.arrivalTime, temp.runTime,temp.remainingTime, temp.waitingTime); 
                     fwrite(printString, sizeof(char), strlen(printString), outputFile);
                     fclose(outputFile); 
@@ -335,46 +326,59 @@ void writePauseState()
 void writeResumeState()
 {
                     char printString[200];
-                    outputFile = fopen("./output.txt", "a");
+                    outputFile = fopen("./scheduler.log", "a");
                     sprintf(printString,"At time %d process %d resumed arr %d total %d remain %d wait %d\n",y, temp.processID, temp.arrivalTime, temp.runTime,temp.remainingTime, temp.waitingTime); 
                     fwrite(printString, sizeof(char), strlen(printString), outputFile);
                     fclose(outputFile); 
                                     
 }
+void writeFinalState()
+{
+                    y = getClk();
+                    char printString[200];
+                    outputFile1 = fopen("./scheduler.perf", "a");
+                    sprintf(printString,"CPU Utilization = %.2f %% \n",((double)totalRTime/(double)y)*100); 
+                    fwrite(printString, sizeof(char), strlen(printString), outputFile1);
+                    fclose(outputFile1); 
+                                    
+}
 void setStartState()
 {
                     y = getClk();
+                    lastT=y;
+                    totalRTime += temp.runTime;
                     temp.state = stateStarted;                   
                     temp.startTime = y;
-                    temp.waitingTime = getClk()-temp.arrivalTime;
+                    temp.waitingTime = y-temp.arrivalTime;
                     temp.remainingTime = temp.runTime;
-                    temp.finishTime = temp.runTime+temp.startTime;
+                    temp.finishTime = 0;
+                    temp.lastStoppedTime = y;
 }
 void setFinishState()
 {
                     y = getClk();
                     finishedProcesses++;
                     temp.state = stateFinished;
-                    temp.finishTime = getClk();
+                    temp.finishTime = y;
                     temp.remainingTime = 0;
                     temp.TA = y - temp.arrivalTime;
                     temp.WTA = ((double)(temp.TA)/(double)(temp.runTime)) ;
-                    temp.waitingTime = y-temp.lastStoppedTime-temp.runTime;
+                    //temp.waitingTime = y-temp.lastStoppedTime-temp.runTime;
+                    temp.waitingTime=y-temp.arrivalTime-temp.runTime;
 }
 void setPauseState()
 {    
                     y = getClk();
                     temp.state = stateStopped;
-                    temp.remainingTime -= y-(temp.startTime);
-                    temp.lastStoppedTime = getClk();
-                    temp.waitingTime += y -temp.runTime+ temp.remainingTime;                  
+                    //temp.remainingTime -= (y-(temp.lastStoppedTime));
+                    temp.lastStoppedTime = y;                  
 }
 void setResumeState()
 {   
                     y=getClk();
                     temp.state = stateResumed;
                     temp.waitingTime += (y - temp.lastStoppedTime);
-
+                    temp.lastStoppedTime = y;       
 }
 void firstRecieve()
 {
@@ -466,18 +470,17 @@ void secondRecievePr()
                         y=getClk();
                         if(y != lastT)
                         {                        
-                        temp.remainingTime -= (y - temp.lastStoppedTime);
+                        temp.remainingTime -= (y - lastT);
                         lastT = y;
                         }
 
                         if(PCBRCV==-1 )
                         {
-                          
-                          if(temp.state != stateStarted && temp.state != stateResumed)
-                          {
-
+                            
+                         
                               break;
-                          }
+                         
+
                         }
                         else
                         {
@@ -486,26 +489,22 @@ void secondRecievePr()
                             {
                                     priorityTEnqueue(pq,receivedInfo.pcb); 
                             }
-                            else
+                            else if(temp.remainingTime > receivedInfo.pcb.remainingTime && receivedInfo.pcb.processID!=recievingDone)
                             {
-                                if(receivedInfo.pcb.processID == recievingDone)
-                                {
-                                    setPauseState();
-                                    writePauseState();
-                                }
-
-                                if((temp.state == stateFinished  || temp.state ==stateStopped) && receivedInfo.pcb.processID==recievingDone) 
-                                {
-                                    
-                                    priorityTEnqueue(pq,temp);
-                                    kill(temp.forkID,SIGSTOP);   
-                                    break;
-                                }
-                                else 
-                                {
-                      
-                                    priorityTEnqueue(pq,receivedInfo.pcb); 
-                                }   
+                                smallerRecieved =true;
+                                priorityTEnqueue(pq,receivedInfo.pcb);               
+                            }
+                            else if (receivedInfo.pcb.processID==recievingDone && smallerRecieved )
+                            {
+                                setPauseState();
+                                writePauseState();
+                                priorityTEnqueue(pq,temp);    
+                                kill(temp.forkID,SIGSTOP);
+                                break;
+                            }
+                            else if(temp.state == stateFinished ||temp.state == stateStopped)
+                            {
+                                break;
                             }
                         }
                         

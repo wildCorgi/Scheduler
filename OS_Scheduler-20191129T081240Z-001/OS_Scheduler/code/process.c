@@ -1,11 +1,11 @@
 #include "headers.h"
 #include <time.h>
-void handler(int);
+
 /* Modify this file as needed*/
 clock_t remainingtime;
 int main(int agrc, char * argv[])
 {
-    signal(SIGALRM,handler);
+
 
     clock_t current_time,start_t,last;
     current_time = 0;
@@ -19,11 +19,11 @@ int main(int agrc, char * argv[])
   
         start_t = clock();
         current_time = (double)((start_t)/(CLOCKS_PER_SEC)) ;
-        if(last!=current_time)
-        {
-            last=current_time;
+        // if(last!=current_time)
+        // {
+        //     last=current_time;
 
-        }
+        // }
         
     }
 
@@ -32,9 +32,4 @@ int main(int agrc, char * argv[])
     exit(0);
     
     
-}
-
-void handler(int signum)
-{
-         kill(getppid(),SIGUSR2);
 }
