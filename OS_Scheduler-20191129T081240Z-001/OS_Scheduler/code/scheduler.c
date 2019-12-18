@@ -196,12 +196,14 @@ void doRR()
                 else if (pid == 0)
                 {
                     lastT = x;
-              
                     setStartState();
                     char str[64];
                     sprintf(str, "%d", temp.remainingTime);
                     writeStartState();
-
+                if (quantum < temp.remainingTime)
+                {
+                    alarm(quantum);
+                }
                     execl("./process.out", "process.out ", str, NULL);
                 }
                  if (quantum < temp.remainingTime)
