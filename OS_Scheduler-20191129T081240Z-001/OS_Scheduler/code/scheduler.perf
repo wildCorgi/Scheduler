@@ -48,3 +48,28 @@ Avg WTA = 7.53
 Avg Waiting = 20.83
 Std WTA = 5.45 
 -------------
+CPU Utilization = 91.43 % 
+Avg WTA = 2.62
+Avg Waiting = 10.33
+Std WTA = 0.76 
+-------------
+CPU Utilization = 94.12 % 
+Avg WTA = 4.98
+Avg Waiting = 17.67
+Std WTA = 1.19 
+-------------
+CPU Utilization = 94.12 % 
+Avg WTA = 4.94
+Avg Waiting = 17.50
+Std WTA = 1.21 
+-------------
+CPU Utilization = 94.12 % 
+Avg WTA = 5.05
+Avg Waiting = 18.17
+Std WTA = 1.16 
+-------------
+CPU Utilization = 94.12 % 
+Avg WTA = 5.03
+Avg Waiting = 18.00
+Std WTA = 1.18 
+-------------
