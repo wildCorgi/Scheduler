@@ -6,7 +6,7 @@ clock_t remainingtime;
 
 int main(int agrc, char * argv[])
 {
-
+ 
 
     clock_t current_time,start_t,last;
     current_time = 0;
