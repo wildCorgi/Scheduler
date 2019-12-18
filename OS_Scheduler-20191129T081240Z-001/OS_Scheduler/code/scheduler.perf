@@ -1,20 +1,44 @@
-CPU Utilization = 85.71 % 
-Avg WTA = 4.08
-Avg Waiting = 6.17
-Std WTA = 3.88 
-CPU Utilization = 85.71 % 
-Avg WTA = 4.25
-Avg Waiting = 6.50
-Std WTA = 5.33 
-CPU Utilization = 92.31 % 
-Avg WTA = 4.00
-Avg Waiting = 6.00
-Std WTA = 4.36 
-CPU Utilization = 92.31 % 
-Avg WTA = 4.00
-Avg Waiting = 6.00
-Std WTA = 4.18 
-CPU Utilization = 92.31 % 
-Avg WTA = 4.00
-Avg Waiting = 6.00
-Std WTA = 1.71 
+CPU Utilization = 91.43 % 
+Avg WTA = 5.51
+Avg Waiting = 19.67
+Std WTA = 1.52 
+-------------CPU Utilization = 96.97 % 
+Avg WTA = 7.78
+Avg Waiting = 21.17
+Std WTA = 5.82 
+-------------
+CPU Utilization = 96.97 % 
+Avg WTA = 7.78
+Avg Waiting = 21.17
+Std WTA = 5.82 
+-------------
+CPU Utilization = 88.89 % 
+Avg WTA = 7.88
+Avg Waiting = 22.00
+Std WTA = 5.76 
+-------------
+CPU Utilization = 94.12 % 
+Avg WTA = 7.85
+Avg Waiting = 21.67
+Std WTA = 5.78 
+-------------
+CPU Utilization = 91.43 % 
+Avg WTA = 7.87
+Avg Waiting = 21.83
+Std WTA = 5.77 
+-------------
+CPU Utilization = 96.97 % 
+Avg WTA = 7.69
+Avg Waiting = 21.00
+Std WTA = 5.80 
+-------------
+CPU Utilization = 94.12 % 
+Avg WTA = 7.82
+Avg Waiting = 21.50
+Std WTA = 5.80 
+-------------
+CPU Utilization = 96.97 % 
+Avg WTA = 2.49
+Avg Waiting = 9.33
+Std WTA = 0.64 
+-------------
