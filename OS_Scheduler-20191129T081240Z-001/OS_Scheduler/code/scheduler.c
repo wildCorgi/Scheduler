@@ -49,7 +49,7 @@ int main(int argc, char *argv[])
 {
     signal(SIGUSR1, processDone);
     signal(SIGCHLD, SIG_IGN);
-    signal(SIGALRM, alarmREC);
+    signal(SIGUSR2, alarmREC);
     pq = createQueue();
     npq = createNQueue();
 
@@ -200,14 +200,14 @@ void doRR()
                     char str[64];
                     sprintf(str, "%d", temp.remainingTime);
                     writeStartState();
-                    execl("./process.out", "process.out ", str, NULL);
-                }
-
-                setStartState();
                 if (quantum < temp.remainingTime)
                 {
                     alarm(quantum);
                 }
+                    execl("./process.out", "process.out ", str, NULL);
+                }
+                setStartState();
+
                 temp.forkID = pid;
             }
             else
