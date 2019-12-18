@@ -49,7 +49,7 @@ int main(int argc, char *argv[])
 {
     signal(SIGUSR1, processDone);
     signal(SIGCHLD, SIG_IGN);
-    signal(SIGUSR2, alarmREC);
+    signal(SIGALRM, alarmREC);
     pq = createQueue();
     npq = createNQueue();
 
@@ -196,16 +196,17 @@ void doRR()
                 else if (pid == 0)
                 {
                     lastT = x;
-                if (quantum < temp.remainingTime)
-                {
-                    alarm(quantum);
-                }
+              
                     setStartState();
                     char str[64];
                     sprintf(str, "%d", temp.remainingTime);
                     writeStartState();
 
                     execl("./process.out", "process.out ", str, NULL);
+                }
+                 if (quantum < temp.remainingTime)
+                {
+                    alarm(quantum);
                 }
                 setStartState();
 
